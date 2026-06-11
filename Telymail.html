@@ -1,0 +1,2052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#08080c">
+    <title>Tely Mail</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url("https://fonts.cdnfonts.com/css/sf-pro-display");
+
+        * { -webkit-user-select:none!important; -moz-user-select:none!important; user-select:none!important; -webkit-touch-callout:none!important; }
+        input, textarea, .selectable-text, #modalBody, #modalBody * { -webkit-user-select:text!important; -moz-user-select:text!important; user-select:text!important; -webkit-touch-callout:default!important; }
+
+        html { background:#08080c; }
+        body {
+            font-family:-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+            background:#08080c; color:#fff;
+            -webkit-tap-highlight-color:transparent;
+            -webkit-font-smoothing:antialiased;
+            -moz-osx-font-smoothing:grayscale;
+            text-rendering:optimizeLegibility;
+            letter-spacing:-0.01em;
+            overscroll-behavior-y:none;
+        }
+
+        /* ── ambient glow background (gives glass something to refract) ── */
+        body::before {
+            content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+            background:
+                radial-gradient(ellipse 65% 42% at 18% -5%, rgba(10,132,255,.22), transparent 60%),
+                radial-gradient(ellipse 50% 35% at 88% 20%, rgba(64,200,224,.10), transparent 60%),
+                radial-gradient(ellipse 75% 50% at 50% 105%, rgba(10,132,255,.12), transparent 65%),
+                linear-gradient(180deg, #0a0a10 0%, #08080c 45%, #07070b 100%);
+        }
+        /* subtle animated shimmer behind glass */
+        body::after {
+            content:""; position:fixed; inset:-50%; z-index:-1; pointer-events:none;
+            background:radial-gradient(ellipse 30% 20% at 50% 50%, rgba(255,255,255,.025), transparent 70%);
+            animation:ambientDrift 18s ease-in-out infinite alternate;
+        }
+        @keyframes ambientDrift {
+            0%   { transform:translate(-8%, -5%) scale(1); }
+            100% { transform:translate(8%, 6%) scale(1.15); }
+        }
+
+        /* ── Liquid Glass (iOS 26 style, refined) ── */
+        .ios-blur, .liquid-glass {
+            position:relative;
+            background:linear-gradient(160deg, rgba(64,66,76,.42) 0%, rgba(44,46,54,.36) 55%, rgba(52,54,64,.40) 100%);
+            backdrop-filter:blur(32px) saturate(200%) brightness(1.06);
+            -webkit-backdrop-filter:blur(32px) saturate(200%) brightness(1.06);
+            box-shadow:
+                inset 0 1.5px 0 rgba(255,255,255,.16),
+                inset 0 -1px 0 rgba(255,255,255,.045),
+                inset 1px 0 0 rgba(255,255,255,.05),
+                inset -1px 0 0 rgba(255,255,255,.03),
+                inset 0 0 0 .5px rgba(255,255,255,.06),
+                0 10px 36px rgba(0,0,0,.42),
+                0 1px 2px rgba(0,0,0,.3);
+        }
+        /* specular sweep, the liquid glass signature */
+        .liquid-glass::before, .ios-blur::before {
+            content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+            background:
+                linear-gradient(115deg, rgba(255,255,255,.10) 0%, rgba(255,255,255,.02) 22%, transparent 38%, transparent 68%, rgba(255,255,255,.05) 100%),
+                radial-gradient(120% 60% at 50% -10%, rgba(255,255,255,.07), transparent 55%);
+        }
+        .liquid-glass-strong {
+            position:relative;
+            background:linear-gradient(160deg, rgba(74,76,88,.58) 0%, rgba(52,54,64,.52) 60%, rgba(60,62,74,.55) 100%);
+            backdrop-filter:blur(44px) saturate(220%) brightness(1.08);
+            -webkit-backdrop-filter:blur(44px) saturate(220%) brightness(1.08);
+            box-shadow:
+                inset 0 1.5px 0 rgba(255,255,255,.18),
+                inset 0 0 0 .5px rgba(255,255,255,.08),
+                inset 0 -12px 24px rgba(0,0,0,.12),
+                0 18px 56px rgba(0,0,0,.55);
+        }
+        .liquid-glass-strong::before {
+            content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+            background:
+                linear-gradient(115deg, rgba(255,255,255,.11) 0%, transparent 32%, transparent 70%, rgba(255,255,255,.06) 100%),
+                radial-gradient(110% 50% at 50% -8%, rgba(255,255,255,.08), transparent 55%);
+        }
+        .glass-dock {
+            position:relative;
+            background:linear-gradient(180deg, rgba(50,52,62,.60) 0%, rgba(38,40,48,.55) 100%);
+            backdrop-filter:blur(40px) saturate(200%) brightness(1.07);
+            -webkit-backdrop-filter:blur(40px) saturate(200%) brightness(1.07);
+            box-shadow:
+                inset 0 1.5px 0 rgba(255,255,255,.18),
+                inset 0 0 0 .5px rgba(255,255,255,.07),
+                0 14px 44px rgba(0,0,0,.6),
+                0 2px 6px rgba(0,0,0,.35);
+        }
+        .glass-dock::before {
+            content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,.09) 0%, transparent 45%),
+                radial-gradient(60% 100% at 50% 0%, rgba(10,132,255,.05), transparent 60%);
+        }
+
+        /* ── iOS spring press (haptic-style) ── */
+        .ios-btn-active { transition:transform .32s cubic-bezier(.34,1.56,.64,1); }
+        .ios-btn-active:active { transform:scale(.94); transition:transform .08s ease-out; }
+
+        /* domain picker dropdown */
+        #domainMenu { transition:opacity .22s cubic-bezier(.34,1.4,.64,1), transform .22s cubic-bezier(.34,1.4,.64,1); transform-origin:top right; }
+        #domainMenu.hidden-anim { opacity:0; transform:scale(.9) translateY(-6px); pointer-events:none; }
+
+        ::-webkit-scrollbar { width:4px; }
+        ::-webkit-scrollbar-track { background:transparent; }
+        ::-webkit-scrollbar-thumb { background:#545458; border-radius:999px; }
+        input::selection, textarea::selection { background:rgba(10,132,255,.3); color:#fff; }
+        input::-moz-selection, textarea::-moz-selection { background:rgba(10,132,255,.3); color:#fff; }
+        input { -webkit-tap-highlight-color:transparent; caret-color:#0a84ff; }
+
+        /* modal */
+        #accountsModal { transition:opacity .3s ease; }
+        #accountsModalSheet { transition:transform .42s cubic-bezier(.32,.72,0,1); }
+        #emailModal > div { transition:transform .35s cubic-bezier(.34,1.3,.64,1), opacity .3s ease; }
+
+        /* card success, subtle glow only */
+        #createEmailCard { transition:border-color .4s ease, background-color .4s ease, box-shadow .4s ease; }
+        #createEmailCard.success {
+            background-color:rgba(48,209,88,.05)!important;
+            box-shadow:0 0 40px rgba(48,209,88,.14)!important;
+        }
+
+        /* smooth check */
+        @keyframes smoothCheck {
+            0%   { opacity:0; transform:scale(.4); }
+            55%  { opacity:1; transform:scale(1.12); }
+            100% { opacity:1; transform:scale(1); }
+        }
+        .check-anim { animation:smoothCheck .45s cubic-bezier(.34,1.56,.64,1) forwards; }
+
+        /* iOS push slide */
+        #tabSlider { overflow:hidden; position:relative; }
+        #tabSlideTrack {
+            display:flex; width:200%;
+            transition:transform .42s cubic-bezier(.32,.72,0,1);
+            will-change:transform;
+        }
+        #tabContentMail  { width:50%; flex-shrink:0; }
+        #tabContentInbox { width:50%; flex-shrink:0; }
+
+        /* mail row entrance */
+        @keyframes mailIn {
+            from { opacity:0; transform:translateY(10px) scale(.97); }
+            to   { opacity:1; transform:translateY(0) scale(1); }
+        }
+        .mail-in { animation:mailIn .4s cubic-bezier(.34,1.3,.64,1) backwards; }
+
+        /* mail row pieces */
+        .mail-avatar {
+            width:40px; height:40px; border-radius:50%;
+            display:flex; align-items:center; justify-content:center;
+            font-size:15px; font-weight:800;
+        }
+        .mail-intro {
+            display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+            overflow:hidden; word-break:break-word;
+        }
+        .mail-unread { background-color:rgba(10,132,255,.045); }
+
+        /* full-screen profile page (Gmail style) */
+        #profilePage {
+            position:fixed; inset:0; z-index:60; background:rgba(8,8,12,.92);
+            backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
+            display:flex; flex-direction:column; align-items:center;
+            overflow-y:auto; padding:1.25rem 1rem 3rem;
+            transition:opacity .3s cubic-bezier(.32,.72,0,1), transform .3s cubic-bezier(.32,.72,0,1);
+        }
+        #profilePage.hidden { display:none; }
+        #profilePage.closing, #profilePage.opening { opacity:0; transform:translateY(24px); }
+
+        /* waiting box */
+        .waiting-box {
+            min-height:460px; display:flex; flex-direction:column;
+            align-items:center; justify-content:center;
+            border-radius:32px; padding:2.5rem; text-align:center; gap:1rem;
+        }
+
+        /* ── Pull to refresh ── */
+        #pullIndicator {
+            height:0; overflow:hidden; display:flex; align-items:flex-end; justify-content:center;
+            transition:none; pointer-events:none;
+        }
+        #pullIndicator.springing { transition:height .42s cubic-bezier(.32,.72,0,1); }
+        #pullSpinner {
+            width:30px; height:30px; margin-bottom:10px; border-radius:50%;
+            display:flex; align-items:center; justify-content:center;
+            background:rgba(58,58,62,.6);
+            backdrop-filter:blur(20px);
+            -webkit-backdrop-filter:blur(20px);
+            box-shadow:inset 0 1px 0 rgba(255,255,255,.12), 0 4px 16px rgba(0,0,0,.4);
+        }
+        #pullSpinner svg { transition:transform .1s linear; }
+        #pullSpinner.spinning svg { animation:ptrSpin .8s linear infinite; }
+        @keyframes ptrSpin { to { transform:rotate(360deg); } }
+
+        /* ── Toasts ── */
+        #toastContainer {
+            position:fixed; top:calc(env(safe-area-inset-top, 0px) + 14px); left:50%;
+            transform:translateX(-50%); z-index:100;
+            display:flex; flex-direction:column; align-items:center; gap:8px;
+            width:calc(100% - 3rem); max-width:360px; pointer-events:none;
+        }
+        .toast {
+            display:flex; align-items:center; gap:10px;
+            padding:12px 18px; border-radius:999px;
+            background:rgba(58,58,62,.72);
+            backdrop-filter:blur(32px) saturate(190%);
+            -webkit-backdrop-filter:blur(32px) saturate(190%);
+            border:1px solid rgba(255,255,255,.12);
+            box-shadow:inset 0 1px 0 rgba(255,255,255,.15), 0 12px 36px rgba(0,0,0,.5);
+            font-size:13px; font-weight:700; letter-spacing:-0.01em; color:#fff;
+            opacity:0; transform:translateY(-18px) scale(.92);
+            transition:opacity .35s cubic-bezier(.34,1.4,.64,1), transform .35s cubic-bezier(.34,1.4,.64,1);
+            max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+        }
+        .toast.show { opacity:1; transform:translateY(0) scale(1); }
+        .toast.hide { opacity:0; transform:translateY(-14px) scale(.92); }
+        .toast .t-icon {
+            width:22px; height:22px; border-radius:50%; flex-shrink:0;
+            display:flex; align-items:center; justify-content:center;
+        }
+
+        /* ── Email reader ── */
+        #mailFrame {
+            width:100%; border:0; display:block;
+            background:#fff; border-radius:16px;
+            min-height:160px;
+            box-shadow:0 4px 20px rgba(0,0,0,.35);
+        }
+        .mail-plain {
+            white-space:pre-wrap; word-break:break-word;
+            font-family:inherit; font-size:13.5px; line-height:1.65; color:#d4d4d8;
+        }
+        .translated-block {
+            direction:rtl; text-align:right;
+            white-space:pre-wrap; word-break:break-word;
+            font-size:13.5px; line-height:1.8; color:#e8e8ec;
+            background:rgba(10,132,255,.07);
+            border:1px solid rgba(10,132,255,.18);
+            border-radius:16px; padding:14px 16px;
+        }
+        #translateBtn.translating i { animation:ptrSpin .8s linear infinite; }
+        #translateBtn.active {
+            background:rgba(10,132,255,.18)!important;
+            border-color:rgba(10,132,255,.35)!important;
+            color:#3395ff!important;
+        }
+
+        /* ── Arabic / RTL support ── */
+        [dir="rtl"] body { letter-spacing:0; }
+        [lang="ar"] body { font-family:-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Tahoma, sans-serif; }
+        .ltr-text { direction:ltr; unicode-bidi:isolate; }
+        [dir="rtl"] #domainMenu { transform-origin:top left; }
+        [dir="rtl"] .tracking-widest, [dir="rtl"] .tracking-wider, [dir="rtl"] .tracking-wide { letter-spacing:0!important; }
+
+        /* ── one-time welcome splash ── */
+        #welcomeSplash {
+            position:fixed; inset:0; z-index:90;
+            background:rgba(8,8,12,.97);
+            backdrop-filter:blur(28px); -webkit-backdrop-filter:blur(28px);
+            display:flex; flex-direction:column; align-items:center; justify-content:center;
+            padding:1.5rem; overflow-y:auto;
+            transition:opacity .45s cubic-bezier(.32,.72,0,1), transform .45s cubic-bezier(.32,.72,0,1);
+        }
+        #welcomeSplash.hidden { display:none; }
+        #welcomeSplash.closing { opacity:0; transform:scale(1.04); pointer-events:none; }
+        @keyframes splashIn {
+            from { opacity:0; transform:translateY(18px) scale(.97); }
+            to   { opacity:1; transform:translateY(0) scale(1); }
+        }
+        .splash-in { animation:splashIn .55s cubic-bezier(.34,1.3,.64,1) backwards; }
+        /* split black + blue T logo */
+        .splash-t-badge {
+            width:84px; height:84px; border-radius:24px;
+            background:#fff;
+            display:flex; align-items:center; justify-content:center;
+            box-shadow:0 12px 40px rgba(10,132,255,.28), inset 0 0 0 1px rgba(0,0,0,.05);
+        }
+        .splash-t {
+            font-size:56px; font-weight:800; line-height:1;
+            background:linear-gradient(105deg, #0a0a0a 0%, #0a0a0a 49%, #0a84ff 51%, #3395ff 100%);
+            -webkit-background-clip:text; background-clip:text;
+            -webkit-text-fill-color:transparent; color:transparent;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-start min-h-screen px-4 pt-6 pb-28 overflow-x-hidden">
+
+    <!-- Toast notifications -->
+    <div id="toastContainer" aria-live="polite"></div>
+
+    <!-- ════════ One-time Welcome Splash ════════ -->
+    <div id="welcomeSplash" class="hidden">
+        <div class="w-full max-w-sm flex flex-col items-center gap-6 text-center">
+            <div class="splash-in flex flex-col items-center gap-3" style="animation-delay:.05s">
+                <span class="splash-t-badge select-none" aria-hidden="true"><span class="splash-t">T</span></span>
+                <h1 class="text-2xl font-extrabold tracking-tight text-white">Tely Mail</h1>
+            </div>
+
+            <div class="splash-in flex flex-col items-center gap-3.5 w-full" style="animation-delay:.2s">
+                <span class="text-[14px] font-extrabold text-white leading-relaxed text-pretty" data-i18n="splash_unlimited">Own premium usernames no one else has, like:</span>
+                <div class="flex items-center justify-center gap-2.5 flex-wrap" dir="ltr">
+                    <span class="text-sm font-extrabold text-[#3395ff] bg-[#0a84ff]/10 border border-[#0a84ff]/25 rounded-xl px-3.5 py-2 ltr-text">Nour@grr.la</span>
+                    <span class="text-sm font-extrabold text-[#3395ff] bg-[#0a84ff]/10 border border-[#0a84ff]/25 rounded-xl px-3.5 py-2 ltr-text">67@spam</span>
+                </div>
+                <span class="flex items-center gap-1.5 text-[12px] font-bold text-neutral-400">
+                    <i class="fa-solid fa-infinity text-[10px] text-[#3395ff]" aria-hidden="true"></i>
+                    <span data-i18n="splash_infinite">Create unlimited emails, completely free</span>
+                </span>
+            </div>
+
+            <button onclick="closeWelcomeSplash()" class="splash-in ios-btn-active w-full bg-[#0a84ff] hover:bg-[#3395ff] text-white text-sm font-extrabold rounded-2xl py-4 shadow-lg shadow-blue-600/25" style="animation-delay:.35s" data-i18n="splash_cta">Create my email now</button>
+        </div>
+    </div>
+
+    <!-- Accounts Bottom Sheet -->
+    <!-- ═══════��� Full-screen Profile Page (Gmail style) ════════ -->
+    <div id="profilePage" class="hidden">
+        <div class="w-full max-w-md flex flex-col gap-5">
+            <!-- top bar -->
+            <div class="flex items-center justify-between">
+                <button onclick="closeProfilePage()" aria-label="Close profile" class="ios-btn-active w-10 h-10 rounded-full liquid-glass border border-white/10 flex items-center justify-center text-neutral-300 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+                <span class="text-sm font-bold text-white" data-i18n="profile_title">Tely Mail Account</span>
+                <span class="w-10"></span>
+            </div>
+
+            <!-- big identity card -->
+            <div class="liquid-glass-strong border border-white/15 rounded-[28px] p-6 flex flex-col items-center gap-3">
+                <button onclick="document.getElementById('photoInput').click()" aria-label="Change profile photo" class="ios-btn-active relative group">
+                    <span id="profilePhotoLg" class="w-24 h-24 rounded-full bg-[#0a84ff] flex items-center justify-center text-white text-3xl font-extrabold select-none overflow-hidden border-2 border-white/20 shadow-xl">?</span>
+                    <span class="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#26262e] border border-white/20 flex items-center justify-center text-neutral-300 shadow-lg">
+                        <i class="fa-solid fa-camera text-[11px]"></i>
+                    </span>
+                </button>
+                <input type="file" id="photoInput" accept="image/*" class="hidden" onchange="handlePhotoUpload(event)">
+
+                <div class="flex items-center gap-2">
+                    <span id="profileNameDisplay" class="text-lg font-extrabold text-white">Guest User</span>
+                    <button onclick="editProfileName()" aria-label="Edit name" class="ios-btn-active text-neutral-500 hover:text-white transition-colors">
+                        <i class="fa-solid fa-pen text-[11px]"></i>
+                    </button>
+                </div>
+
+                <div id="profileActiveWrap" class="w-full flex flex-col gap-1.5">
+                    <span class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest text-center" data-i18n="active_email">Active Email</span>
+                    <button onclick="profileCopyEmail()" class="ios-btn-active w-full flex items-center justify-center gap-2 bg-[#0a84ff]/12 border border-[#0a84ff]/30 rounded-2xl px-4 py-3">
+                        <span id="profilePageEmail" class="text-sm font-bold text-[#3395ff] truncate ltr-text">No active email</span>
+                        <i class="fa-regular fa-copy text-[#3395ff] text-xs shrink-0"></i>
+                    </button>
+                    <span class="text-[10px] text-neutral-600 font-semibold text-center" data-i18n="tap_to_copy">Tap to copy</span>
+                </div>
+            </div>
+
+            <!-- accounts list -->
+            <div class="liquid-glass-strong border border-white/15 rounded-[28px] p-4 flex flex-col gap-1">
+                <div class="flex items-center justify-between px-2 pb-2">
+                    <span class="text-[11px] font-bold text-neutral-400 uppercase tracking-widest" data-i18n="my_addresses">My Email Addresses</span>
+                    <span id="profilePageCount" class="text-[10px] text-neutral-400 font-bold bg-[#26262e] px-2 py-0.5 rounded-lg border border-white/10">0</span>
+                </div>
+                <div id="profileAccountsList" class="flex flex-col gap-1"></div>
+                <button onclick="closeProfilePage();switchViewTab('mail')" class="ios-btn-active flex items-center gap-3 px-3 py-3 rounded-2xl text-sm font-bold text-[#0a84ff] hover:bg-[#0a84ff]/10 transition-colors mt-1">
+                    <span class="w-10 h-10 rounded-full border-2 border-dashed border-[#0a84ff]/40 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-plus text-sm"></i>
+                    </span>
+                    <span data-i18n="create_another">Create another email address</span>
+                </button>
+            </div>
+
+            <!-- actions -->
+            <div class="liquid-glass-strong border border-white/15 rounded-[28px] p-2 flex flex-col gap-1">
+                <button onclick="toggleLang()" class="ios-btn-active flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-bold text-neutral-300 hover:bg-white/5 transition-colors">
+                    <span class="flex items-center gap-3">
+                        <i class="fa-solid fa-globe text-[#0a84ff] w-5 text-center"></i><span data-i18n="lang_row">Language</span>
+                    </span>
+                    <span id="langLabel" class="text-[11px] font-extrabold text-neutral-400 bg-[#26262e] px-2.5 py-1 rounded-lg border border-white/10">EN</span>
+                </button>
+                <button onclick="openHelpSheet()" class="ios-btn-active flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-neutral-300 hover:bg-white/5 transition-colors">
+                    <i class="fa-regular fa-circle-question text-[#0a84ff] w-5 text-center"></i><span data-i18n="what_is">What is Tely Mail?</span>
+                </button>
+                <button onclick="clearHistory();renderProfilePage()" class="ios-btn-active flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-red-400 hover:bg-red-500/10 transition-colors">
+                    <i class="fa-regular fa-trash-can w-5 text-center"></i><span data-i18n="delete_all">Delete all my emails</span>
+                </button>
+            </div>
+
+            <p class="text-[10px] text-neutral-600 font-semibold text-center text-pretty" data-i18n-html="profile_note">Everything is saved automatically on this device.<br>No password or sign-up needed.</p>
+        </div>
+    </div>
+
+    <!-- ════════ Help / What is this? sheet ════════ -->
+    <div id="helpSheet" class="fixed inset-0 bg-black/60 z-[70] hidden opacity-0 flex flex-col justify-end transition-opacity duration-300" onclick="if(event.target===this)closeHelpSheet()">
+        <div id="helpSheetInner" class="liquid-glass-strong rounded-t-[32px] border-t border-white/15 w-full max-h-[85vh] overflow-y-auto translate-y-full transition-transform duration-[420ms]" style="transition-timing-function:cubic-bezier(.32,.72,0,1)" onclick="event.stopPropagation()">
+            <div class="max-w-md mx-auto p-6 flex flex-col gap-5">
+                <div class="w-10 h-1 rounded-full bg-white/20 mx-auto"></div>
+                <div class="flex flex-col items-center gap-1.5 text-center">
+                    <span class="w-14 h-14 rounded-2xl bg-[#0a84ff]/15 border border-[#0a84ff]/30 flex items-center justify-center mb-1">
+                        <i class="fa-regular fa-envelope text-[#3395ff] text-xl"></i>
+                    </span>
+                    <h2 class="text-lg font-extrabold text-white" data-i18n="what_is">What is Tely Mail?</h2>
+                    <p class="text-xs text-neutral-400 font-semibold leading-relaxed text-pretty" data-i18n="help_desc">Tely Mail gives you a free, temporary email address in one tap, perfect for signing up to websites without giving away your real email.</p>
+                </div>
+                <div class="flex flex-col gap-3">
+                    <div class="flex items-start gap-3 bg-[#101016] border border-white/10 rounded-2xl p-4">
+                        <span class="w-8 h-8 rounded-full bg-[#0a84ff]/15 flex items-center justify-center shrink-0 text-[#3395ff] text-xs font-extrabold">1</span>
+                        <div class="flex flex-col gap-0.5">
+                            <span class="text-xs font-bold text-white" data-i18n="help_s1_t">Create an email</span>
+                            <span class="text-[11px] text-neutral-400 font-semibold leading-relaxed" data-i18n="help_s1_d">Type any username and tap Generate. Your new address is ready instantly.</span>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3 bg-[#101016] border border-white/10 rounded-2xl p-4">
+                        <span class="w-8 h-8 rounded-full bg-[#0a84ff]/15 flex items-center justify-center shrink-0 text-[#3395ff] text-xs font-extrabold">2</span>
+                        <div class="flex flex-col gap-0.5">
+                            <span class="text-xs font-bold text-white" data-i18n="help_s2_t">Use it anywhere</span>
+                            <span class="text-[11px] text-neutral-400 font-semibold leading-relaxed" data-i18n="help_s2_d">Copy the address and use it on any website. Incoming mail appears in your Inbox automatically.</span>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3 bg-[#101016] border border-white/10 rounded-2xl p-4">
+                        <span class="w-8 h-8 rounded-full bg-[#0a84ff]/15 flex items-center justify-center shrink-0 text-[#3395ff] text-xs font-extrabold">3</span>
+                        <div class="flex flex-col gap-0.5">
+                            <span class="text-xs font-bold text-white" data-i18n="help_s3_t">Saved automatically</span>
+                            <span class="text-[11px] text-neutral-400 font-semibold leading-relaxed" data-i18n="help_s3_d">All your emails are stored on this device, tap your profile picture (top-left) to see and switch between them. No sign-up needed.</span>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="closeHelpSheet()" class="ios-btn-active w-full bg-[#0a84ff] text-white text-sm font-extrabold rounded-2xl py-3.5 shadow-lg shadow-blue-600/25" data-i18n="got_it">Got it</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="w-full max-w-md flex flex-col gap-6">
+
+        <!-- Header -->
+        <header class="flex items-center justify-between px-1 relative">
+            <div class="relative z-20">
+                <button id="profileBtn" onclick="openProfilePage()" aria-label="Open your profile" class="ios-btn-active w-11 h-11 rounded-full liquid-glass border border-white/10 flex items-center justify-center transition-colors relative overflow-visible">
+                    <span id="profileAvatar" class="w-8 h-8 rounded-full bg-[#0a84ff] flex items-center justify-center text-white text-xs font-extrabold select-none overflow-hidden">?</span>
+                    <span id="historyBadge" class="absolute -top-1.5 -right-1.5 bg-[#0a84ff] text-white text-[9px] font-extrabold min-w-[18px] h-[18px] px-1 rounded-full items-center justify-center hidden shadow-lg shadow-blue-600/30" style="display:none">1</span>
+                </button>
+            </div>
+
+            <div class="absolute inset-x-0 flex justify-center pointer-events-none">
+                <div class="flex flex-col items-center">
+                    <h1 class="text-lg font-bold tracking-tight">Tely Mail</h1>
+                </div>
+            </div>
+
+            <div class="relative z-10 flex items-center gap-2">
+                <button id="helpBtn" onclick="openHelpSheet()" aria-label="What is Tely Mail?" class="ios-btn-active w-11 h-11 rounded-full liquid-glass border border-white/10 flex items-center justify-center text-neutral-400 hover:text-white transition-colors">
+                    <i class="fa-regular fa-circle-question text-base"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- iOS Slide container -->
+        <main id="tabSlider">
+            <div id="tabSlideTrack">
+
+                <!-- CREATE EMAIL -->
+                <div id="tabContentMail" class="flex flex-col gap-5">
+                    <div id="createEmailCard" class="ios-blur border border-white/10 rounded-[32px] p-6 flex flex-col gap-5 shadow-2xl">
+                        <div class="flex items-center gap-3">
+                            <span class="w-10 h-10 rounded-2xl bg-[#0a84ff]/12 border border-[#0a84ff]/25 flex items-center justify-center shrink-0" aria-hidden="true">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3395ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"/><polyline points="22,6 12,13 2,6"/></svg>
+                            </span>
+                            <div class="flex flex-col gap-0.5 min-w-0">
+                                <span class="text-sm font-extrabold text-white" data-i18n="new_email">New Email</span>
+                                <span class="text-[11px] text-neutral-500 font-semibold leading-relaxed" data-i18n="create_hint">Write any name you like, you can pick a short and unique username.</span>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col bg-[#101016] border border-white/10 rounded-2xl focus-within:border-[#0a84ff]/50 focus-within:shadow-[0_0_0_3px_rgba(10,132,255,.12)] transition-all duration-200 px-4 py-2.5">
+                            <div class="flex items-center gap-2">
+                                <input type="text" id="usernameInput" autocomplete="off" autocapitalize="none" spellcheck="false" dir="ltr"
+                                    class="w-full bg-transparent pr-2 py-1.5 text-base outline-none text-white font-semibold placeholder-neutral-500 focus:ring-0"
+                                    placeholder="Username" aria-label="Username" data-i18n-ph="ph_username">
+                                <button id="randomBtn" onclick="randomUsername()" title="Random username" aria-label="Random username" class="ios-btn-active w-9 h-8 rounded-xl bg-[#1a1a22] border border-white/10 flex items-center justify-center text-neutral-400 hover:text-[#0a84ff] transition-colors shrink-0">
+                                    <i class="fa-solid fa-dice text-xs"></i>
+                                </button>
+                                <div class="relative shrink-0">
+                                    <button id="domainBtn" onclick="toggleDomainMenu(event)" aria-label="Choose domain" class="ios-btn-active flex items-center gap-1.5 text-[#3395ff] font-bold select-none tracking-wide bg-[#0a84ff]/10 px-3 py-1.5 rounded-xl border border-[#0a84ff]/25 text-xs transition-colors hover:border-[#0a84ff]/45">
+                                        <span id="domainLabel">@...</span>
+                                        <i class="fa-solid fa-chevron-down text-[8px] opacity-70"></i>
+                                    </button>
+                                    <div id="domainMenu" class="hidden-anim fixed w-64 liquid-glass-strong border border-white/15 rounded-2xl p-1.5 z-40 flex flex-col gap-0.5 overflow-y-auto"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="emailPreviewRow" class="hidden items-center justify-center gap-2 -mt-1" dir="ltr">
+                            <span class="w-1.5 h-1.5 rounded-full bg-[#30d158] shrink-0" aria-hidden="true"></span>
+                            <span id="emailPreview" class="text-[12px] font-extrabold text-neutral-300 tracking-wide truncate ltr-text"></span>
+                        </div>
+
+                        <button id="generateBtn" class="ios-btn-active bg-[#0a84ff] hover:bg-[#3395ff] text-white w-full py-4 rounded-2xl font-bold text-sm tracking-wide transition-colors duration-300 shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"/><polyline points="22,6 12,13 2,6"/></svg>
+                            <span data-i18n="btn_create">Create my email now</span>
+                        </button>
+                    </div>
+                    <button onclick="openProfilePage()" class="ios-btn-active flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl text-[11px] font-bold text-neutral-400 hover:text-white transition-colors">
+                        <i class="fa-solid fa-circle-user text-[#3395ff] text-xs"></i>
+                        <span data-i18n="profile_hint_inline">All emails you create are saved in your Profile, switch between them anytime</span>
+                    </button>
+                    <div class="flex items-center justify-center gap-2 px-4 text-[11px] font-bold text-neutral-400">
+                        <i class="fa-solid fa-dice text-[#f59e0b] text-xs"></i>
+                        <span data-i18n="dice_hint">Tap the dice button to get a random username</span>
+                    </div>
+
+                    <!-- Accepted on -->
+                    <div class="flex flex-col items-center gap-3 pt-1">
+                        <span class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest" data-i18n="accepted_on">Accepted on</span>
+                        <div class="flex items-center justify-center gap-2.5 flex-wrap">
+                            <span class="w-9 h-9 rounded-xl bg-white flex items-center justify-center" title="TikTok">
+                                <img src="https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/tiktok/default.svg" width="20" height="20" alt="TikTok" loading="lazy">
+                            </span>
+                            <span class="w-9 h-9 rounded-xl bg-white flex items-center justify-center" title="WhatsApp">
+                                <img src="https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/whatsapp/default.svg" width="20" height="20" alt="WhatsApp" loading="lazy">
+                            </span>
+                            <span class="w-9 h-9 rounded-xl bg-white flex items-center justify-center" title="Instagram">
+                                <img src="https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/instagram/default.svg" width="20" height="20" alt="Instagram" loading="lazy">
+                            </span>
+                            <span class="w-9 h-9 rounded-xl bg-white flex items-center justify-center" title="Facebook">
+                                <img src="https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/facebook/default.svg" width="20" height="20" alt="Facebook" loading="lazy">
+                            </span>
+                            <span class="w-9 h-9 rounded-xl bg-white flex items-center justify-center" title="Snapchat">
+                                <img src="https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/snapchat/default.svg" width="20" height="20" alt="Snapchat" loading="lazy">
+                            </span>
+                            <span class="w-9 h-9 rounded-xl bg-white flex items-center justify-center" title="X">
+                                <img src="https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/x/default.svg" width="18" height="18" alt="X" loading="lazy">
+                            </span>
+                            <span class="h-9 px-3 rounded-xl bg-[#1a1a22] border border-white/10 flex items-center justify-center gap-1.5" title="Any website">
+                                <i class="fa-solid fa-globe text-[#3395ff] text-sm" aria-hidden="true"></i>
+                                <span class="text-[10px] font-bold text-neutral-300" data-i18n="any_website">Any website</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- INBOX -->
+                <div id="tabContentInbox" class="flex flex-col gap-4">
+                    <div class="flex items-center justify-between px-1 select-none">
+                        <span class="text-xs font-bold text-neutral-500 uppercase tracking-widest" data-i18n="inbox_feed">Inbox Live Feed</span>
+                        <div class="flex items-center gap-2">
+                            <span id="inboxCounter" class="text-[11px] text-neutral-500 font-bold bg-[#1a1a22] px-2.5 py-1 rounded-lg border border-white/10">0 messages</span>
+                            <button onclick="checkInbox(true)" aria-label="Refresh inbox" class="ios-btn-active w-9 h-9 rounded-xl bg-[#1a1a22] border border-white/10 flex items-center justify-center text-[#0a84ff] transition-colors">
+                                <i id="refreshIcon" class="fa-solid fa-rotate-right text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="ios-blur border border-white/10 rounded-[24px] p-4 flex flex-col gap-3">
+                        <div class="flex items-center justify-between gap-4">
+                            <div class="flex flex-col gap-1 min-w-0 flex-1">
+                                <span class="text-[9px] font-bold text-neutral-500 uppercase tracking-widest" data-i18n="active_address">Active Address</span>
+                                <span id="inboxCurrentEmail" class="text-sm font-bold text-[#3395ff] break-all">No Active Email</span>
+                            </div>
+                            <button id="inboxCopyBtn" onclick="copyEmail('inboxCopyIcon')" aria-label="Copy email address" class="ios-btn-active w-10 h-10 rounded-xl bg-[#26262e] hover:bg-[#48484a] flex items-center justify-center text-white shrink-0 hidden">
+                                <i id="inboxCopyIcon" class="fa-regular fa-copy text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Pull-to-refresh indicator -->
+                    <div id="pullIndicator">
+                        <div id="pullSpinner">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0a84ff" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                                <path d="M21 12a9 9 0 1 1-3.5-7.1"/>
+                                <polyline points="21 3 21 8 16 8"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div id="inboxList" class="flex flex-col gap-2.5">
+                        <div class="waiting-box bg-[#1a1a22]/20 border border-dashed border-white/10">
+                            <i class="fa-regular fa-folder-open text-3xl text-neutral-500"></i>
+                            <p class="text-xs font-bold text-neutral-500 uppercase tracking-wider">No active address. Create one to receive emails.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Bottom Nav, floating Liquid Glass dock -->
+    <nav class="fixed bottom-5 left-1/2 -translate-x-1/2 w-[calc(100%-2.5rem)] max-w-sm h-[68px] glass-dock border border-white/10 rounded-[34px] flex justify-around items-center z-30 px-2" style="bottom:calc(env(safe-area-inset-bottom, 0px) + 1.25rem)">
+        <button id="btnTabMail" onclick="switchViewTab('mail')" class="ios-btn-active flex flex-col items-center gap-1 text-[#0a84ff] transition-colors duration-200 w-1/2 py-2 rounded-3xl">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,6 12,13 2,6"/>
+            </svg>
+            <span class="text-[10px] font-extrabold tracking-wider" data-i18n="nav_create">CREATE EMAIL</span>
+        </button>
+        <button id="btnTabInbox" onclick="switchViewTab('inbox')" class="ios-btn-active flex flex-col items-center gap-1 text-neutral-500 transition-colors duration-200 w-1/2 py-2 rounded-3xl relative">
+            <span id="inboxTabBadge" class="absolute -top-0.5 right-[28%] bg-[#0a84ff] text-white text-[9px] font-extrabold min-w-[18px] h-[18px] px-1 rounded-full items-center justify-center hidden shadow-lg shadow-blue-600/30" style="display:none">1</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/>
+                <path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/>
+            </svg>
+            <span class="text-[10px] font-extrabold tracking-wider" data-i18n="nav_inbox">INBOX</span>
+        </button>
+    </nav>
+
+    <!-- Email Modal -->
+    <div id="emailModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md hidden opacity-0 transition-opacity duration-300">
+        <div class="ios-blur border border-white/10 rounded-[32px] w-full max-w-lg max-h-[85vh] flex flex-col shadow-2xl overflow-hidden transform scale-95">
+            <div class="p-5 border-b border-white/10 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/15 flex items-center justify-center shrink-0">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0a84ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="2" y="4" width="20" height="16" rx="2"/>
+                        <polyline points="22,6 12,13 2,6"/>
+                    </svg>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <h3 id="modalSubject" class="text-base font-bold truncate text-white"></h3>
+                    <p id="modalFrom" class="text-xs text-neutral-500 truncate mt-0.5 font-medium"></p>
+                </div>
+                <button onclick="closeModal()" aria-label="Close email" class="ios-btn-active w-8 h-8 rounded-full bg-[#26262e] flex items-center justify-center text-neutral-400 hover:text-white transition-colors shrink-0">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+            <div id="modalBody" class="p-5 overflow-y-auto text-sm text-neutral-200 leading-relaxed bg-black/20 select-text"></div>
+            <div class="px-5 py-2.5 border-t border-white/10 flex items-center justify-between gap-2.5 shrink-0 bg-[#1a1a1f]/60">
+                <button id="translateBtn" onclick="toggleTranslate()" class="ios-btn-active flex items-center gap-2 px-3.5 py-2 rounded-xl text-[11px] font-bold transition-all duration-200 text-neutral-300 hover:text-white" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1)">
+                    <i class="fa-solid fa-language text-xs"></i>
+                    <span id="translateLabel">ترجمة</span>
+                </button>
+            </div>
+            <div id="codeBar" class="hidden px-5 py-2.5 border-t border-white/10 flex items-center gap-2.5 shrink-0 bg-[#1a1a1f]">
+                <span class="text-xs font-semibold text-neutral-500" data-i18n="code_label">Code:</span>
+                <span id="detectedCode" class="text-sm font-extrabold text-white tracking-[0.2em] flex-1" style="font-variant-numeric:tabular-nums"></span>
+                <button onclick="copyDetectedCode()" class="ios-btn-active flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all duration-200 text-neutral-400 hover:text-white" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08)">
+                    <i id="copyCodeIcon" class="fa-regular fa-copy text-[10px]"></i>
+                    <span id="copyCodeText" data-i18n="copy">Copy</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://api.mail.tm";
+        const GUERRILLA_API = "https://api.guerrillamail.com/ajax.php";
+        const GUERRILLA_DOMAINS = ["grr.la", "spam4.me", "pokemail.net", "sharklasers.com"];
+        let DOMAIN = "", DOMAIN_PROVIDER = "guerrilla";
+        let domainList = [];
+        let activeEmail = "", activeToken = "", activeProvider = "mailtm", inboxInterval = null, currentTab = "mail";
+        let savedAccounts = JSON.parse(localStorage.getItem("saved_emails")) || [];
+
+        // ── i18n (English / Arabic) ───────────���────────────────────
+        const I18N = {
+            en: {
+                profile_title:"Tely Mail Account", active_email:"Active Email", tap_to_copy:"Tap to copy",
+                my_addresses:"My Email Addresses", create_another:"Create another email address",
+                what_is:"What is Tely Mail?", delete_all:"Delete all my emails", replay_tutorial:"Replay tutorial",
+                profile_note:"Everything is saved automatically on this device.<br>No password or sign-up needed.",
+                help_desc:"Tely Mail gives you a free, permanent email address in one tap, no password, no sign-up, and your identity stays completely hidden.",
+                help_s1_t:"Create your email", help_s1_d:"Type any short name and tap the Create button. Your email address is ready instantly.",
+                help_s2_t:"Use it anywhere", help_s2_d:"Copy the address and use it on any website. Incoming mail appears in your Inbox automatically.",
+                help_s3_t:"Managed in your Profile", help_s3_d:"Every email you create is saved in your Profile, tap your photo (top corner) to see them all and switch between them. No sign-up needed.",
+                got_it:"Got it", your_accounts:"Your Accounts", clear_history:"Clear All History",
+                new_email:"Your new email", ph_username:"Username", btn_create:"Create my email now", btn_creating:"Creating your email...",
+                inbox_feed:"Incoming Messages", active_address:"Your current email", no_active_email:"No email yet",
+                nav_create:"NEW EMAIL", nav_inbox:"INBOX", secure_reader:"Secure Reader", code_label:"Code:",
+                dice_hint:"Tap the dice button to get a random username",
+                accepted_on:"Accepted on", any_website:"Any website",
+                lang_row:"Language",
+                create_hint:"Write any name you like, you can pick a short and unique username.",
+                profile_hint_inline:"All emails you create are saved in your Profile, switch between them anytime",
+                domain_pick:"Choose your email ending",
+                splash_title:"Claim rare, premium usernames",
+                splash_sub:"Short, exclusive addresses. No password, no sign-up, your identity stays fully hidden.",
+                splash_unlimited:"Own premium usernames no one else has, like:",
+                splash_infinite:"Create unlimited emails, completely free",
+                splash_f1:"One tap, your email is ready instantly",
+                splash_f2:"100% anonymous, no name, no password, no sign-up",
+                splash_f3:"All your emails are saved in your Profile, switch between them anytime",
+                splash_cta:"Create my email now",
+                t_saved_profile:"Saved to your Profile (top corner)",
+                copy:"Copy", copied:"Copied!", guest_user:"Guest User", no_active_email_lc:"No active email",
+                active_now:"Active now", tap_switch:"Tap to switch", active:"Active",
+                no_emails_yet:"No emails yet, create your first one below.", no_saved:"No saved accounts",
+                messages: n => n + " message" + (n !== 1 ? "s" : ""),
+                waiting_title:"Waiting for Emails...", waiting_sub:"Messages will appear here", checking:"Checking every 5 seconds",
+                empty_inbox:"No active address. Create one to receive emails.",
+                no_subject:"(No Subject)", from:"From: ",
+                t_enter_username:"Enter a username first", t_no_conn:"No Connection", t_taken:"Username Taken", t_failed:"Failed, Try Again",
+                t_created:"Email created", t_copied:"Email address copied", t_email_copied:"Email copied", t_code_copied:"Code copied",
+                t_switched: u => "Switched to " + u,
+                t_choose_image:"Please choose an image", t_photo_updated:"Profile photo updated", t_img_large:"Image too large to save",
+                t_create_first:"Create an email first", t_acc_deleted:"Account deleted", t_nothing:"Nothing to clear", t_cleared:"History cleared",
+                t_no_active:"No active email", t_refresh_failed:"Refresh failed", t_open_failed:"Failed to open email",
+                t_new_mail: s => "New mail: " + s, t_new_mails: n => n + " new messages",
+                new_message:"New Message", unknown:"Unknown",
+                t_nothing_translate:"Nothing to translate", t_translated:"Translated", t_translate_failed:"Translation failed, try again",
+                translate:"Translate", translating:"Translating...", original:"Original text",
+                prompt_name:"Enter your display name:",
+                expired:"(Message content is no longer available on the server)",
+                t_lang:"Language: English",
+                d_short:"The shortest email, easy to type & remember", d_less:"Works on most websites", d_rare:"Almost never rejected by websites", d_pop:"Well known, some websites may reject it", d_hard:"Accepted almost everywhere",
+                w_subject:"Welcome to Tely Mail", w_intro:"Your permanent email address is ready to use.",
+                f_privacy_t:"Full privacy", f_privacy_d:"Your real email stays hidden",
+                f_instant_t:"Instant", f_instant_d:"Address ready in one tap",
+                f_save_t:"Auto-saved", f_save_d:"Kept on this device",
+                tips_title:"Quick tips",
+                tip1:"Use the dice button to get a random username.",
+                tip2:"OTP codes are detected automatically, copy them in one tap.",
+                tip3:"You can create multiple addresses and switch between them from your profile.",
+                tut_skip:"Skip", tut_next:"Next", tut_done:"Start now",
+                tut1_t:"Welcome to Tely Mail", tut1_d:"Your profile is ready. This quick tour shows you 3 simple steps: create an email, receive messages, and manage your addresses.",
+                tut2_t:"Step 1, Create your email", tut2_d:"We pre-filled a username from your name. Edit it if you like (or tap the dice for a random one), pick a domain, then press Create.",
+                tut3_t:"Step 2, Your inbox", tut3_d:"Incoming messages appear here automatically every 5 seconds. Verification codes are detected and copied in one tap.",
+                tut4_t:"Step 3, Your profile", tut4_d:"Tap your photo (top corner) to see your name, picture, and all saved addresses, and to switch between them.",
+                setup_title:"Create your profile", setup_sub:"Add your name and an optional photo, then we'll create your first email address.",
+                setup_photo_optional:"Photo is optional", setup_name_label:"Your Name", setup_name_ph:"e.g. Ahmed",
+                setup_continue:"Continue", setup_note:"Saved on this device only, no sign-up, no password.",
+                t_enter_name:"Please enter your name first"
+            },
+            ar: {
+                profile_title:"حساب تيلي ميل", active_email:"البريد النشط", tap_to_copy:"اضغط للنسخ",
+                my_addresses:"عناويني البريدية", create_another:"إنشاء بريد إلكتروني آخر",
+                what_is:"ما هو تيلي ميل؟", delete_all:"حذف جميع رسائلي", replay_tutorial:"إعادة عرض الشرح",
+                profile_note:"يتم حفظ كل شيء تلقائياً على هذا الجهاز.<br>لا حاجة لكلمة مرور أو تسجيل.",
+                help_desc:"تيلي ميل يمنحك إيميلاً دائماً ومجانياً بضغطة زر واحدة، بدون كلمة مرور، بدون تسجيل، ومع إخفاء هويتك بالكامل.",
+                help_s1_t:"أنشئ إيميلك", help_s1_d:"اكتب أي اسم قصير واضغط زر الإنشاء. إيميلك يصبح جاهزاً فوراً.",
+                help_s2_t:"استخدمه في أي مكان", help_s2_d:"انسخ الإيميل واستخدمه في أي موقع. الرسائل الواردة تظهر في صندوق الوارد تلقائياً.",
+                help_s3_t:"يُدار من ملفك الشخصي", help_s3_d:"كل إيميل تنشئه يُحفظ في ملفك الشخصي، اضغط على صورتك (أعلى الزاوية) لعرض إيميلاتك كلها والتبديل بينها. لا حاجة للتسجيل.",
+                got_it:"فهمت", your_accounts:"حساباتك", clear_history:"مسح كل السجل",
+                new_email:"إيميلك الجديد", ph_username:"Username", btn_create:"أنشئ إيميلي الآن", btn_creating:"جارٍ إنشاء إيميلك...",
+                inbox_feed:"الرسائل الواردة", active_address:"إيميلك الحالي", no_active_email:"لا يوجد إيميل بعد",
+                nav_create:"إيميل جديد", nav_inbox:"الوارد", secure_reader:"قارئ آمن", code_label:"الرمز:",
+                dice_hint:"اضغط زر النرد للحصول على يوزرنيم عشوائي",
+                accepted_on:"خدماتنا تعمل في", any_website:"أي موقع",
+                lang_row:"اللغة",
+                create_hint:"اكتب أي اسم يعجبك، يمكنك اختيار يوزر مميز وقصير.",
+                profile_hint_inline:"كل إيميل تنشئه يُحفظ في ملفك الشخصي، بدّل بينها في أي وقت",
+                domain_pick:"اختر نهاية إيميلك",
+                splash_title:"احجز يوزرات مميزة ونادرة",
+                splash_sub:"عناوين قصيرة وحصرية. بدون كلمة مرور، بدون تسجيل، وهويتك تبقى مخفية بالكامل.",
+                splash_unlimited:"امتلك يوزرات مميزة لا يملكها أحد غيرك، مثل:",
+                splash_infinite:"أنشئ عدداً لا نهائياً من الإيميلات، مجاناً بالكامل",
+                splash_f1:"ضغطة واحدة، إيميلك جاهز فوراً",
+                splash_f2:"مجهول الهوية 100%، بدون اسم أو كلمة مرور أو تسجيل",
+                splash_f3:"كل إيميلاتك تُحفظ في ملفك الشخصي، بدّل بينها في أي وقت",
+                splash_cta:"أنشئ إيميلي الآن",
+                t_saved_profile:"تم الحفظ في ملفك الشخصي (أعلى الزاوية)",
+                copy:"نسخ", copied:"تم النسخ!", guest_user:"مستخدم زائر", no_active_email_lc:"لا يوجد بريد نشط",
+                active_now:"نشط الآن", tap_switch:"اضغط للتبديل", active:"نشط",
+                no_emails_yet:"لا توجد رسائل بعد ، أنشئ  اول بريد لك من الأسفل", no_saved:"لا توجد حسابات محفوظة",
+                messages: n => n === 0 ? "لا رسائل" : (n === 1 ? "رسالة واحدة" : (n === 2 ? "رسالتان" : (n <= 10 ? n + " رسائل" : n + " رسالة"))),
+                waiting_title:"بانتظار الرسائل...", waiting_sub:"ستظهر الرسائل هنا", checking:"يتم الفحص كل 5 ثوانٍ",
+                empty_inbox:"لا يوجد عنوان نشط. أنشئ واحداً لاستقبال الرسائل.",
+                no_subject:"(بدون عنوان)", from:"من: ",
+                t_enter_username:"أدخل اسم المستخدم أولاً", t_no_conn:"لا يوجد اتصال", t_taken:"الاسم مستخدم مسبقاً", t_failed:"فشل، حاول مجدداً",
+                t_created:"تم إنشاء البريد", t_copied:"تم نسخ عنوان البريد", t_email_copied:"تم نسخ البريد", t_code_copied:"تم نسخ الرمز",
+                t_switched: u => "تم التبديل إلى " + u,
+                t_choose_image:"الرجاء اختيار صورة", t_photo_updated:"تم تحديث صورة الملف الشخصي", t_img_large:"الصورة كبيرة جداً للحفظ",
+                t_create_first:"أنشئ بريداً إلكترونياً أولاً", t_acc_deleted:"تم حذف الحساب", t_nothing:"لا يوجد ما يُمسح", t_cleared:"تم مسح السجل",
+                t_no_active:"لا يوجد بريد نشط", t_refresh_failed:"فشل التحديث", t_open_failed:"فشل فتح الرسالة",
+                t_new_mail: s => "رسالة جديدة: " + s, t_new_mails: n => n + " رسائل جديدة",
+                new_message:"رسالة جديدة", unknown:"غير معروف",
+                t_nothing_translate:"لا يوجد نص للترجمة", t_translated:"تمت الترجمة", t_translate_failed:"فشلت الترجمة، حاول مجدداً",
+                translate:"ترجمة", translating:"جارٍ الترجمة...", original:"النص الأصلي",
+                prompt_name:"أدخل اسمك المعروض:",
+                expired:"(محتوى الرسالة لم يعد متوفراً على الخادم)",
+                t_lang:"اللغة: العربية",
+                d_short:"الإيميل الأقصر، سهل الكتابة والحفظ", d_less:"يعمل مع معظم المواقع", d_rare:"نادراً جداً ما ترفضه المواقع", d_pop:"معروف، بعض المواقع قد ترفضه", d_hard:"مقبول في كل مكان تقريباً",
+                w_subject:"مرحباً بك في تيلي ميل", w_intro:"إيميلك الدائم جاهز للاستخدام.",
+                f_privacy_t:"خصوصية كاملة", f_privacy_d:"بريدك الحقيقي يبقى مخفياً",
+                f_instant_t:"فوري", f_instant_d:"العنوان جاهز بضغطة واحدة",
+                f_save_t:"حفظ تلقائي", f_save_d:"محفوظ على هذا الجهاز",
+                tips_title:"نصائح سريعة",
+                tip1:"استخدم زر النرد للحصول على اسم مستخدم عشوائي.",
+                tip2:"يتم اكتشاف رموز التحقق تلقائياً، انسخها بضغطة واحدة.",
+                tip3:"يمكنك إنشاء عدة عناوين والتبديل بينها من ملفك الشخصي.",
+                tut_skip:"تخطي", tut_next:"التالي", tut_done:"ابدأ الآن",
+                tut1_t:"مرحباً بك في تيلي ميل", tut1_d:"ملفك الشخصي جاهز. هذه جولة سريعة تشرح 3 خطوات بسيطة: إنشاء بريد، استقبال الرسائل، وإدارة عناوينك.",
+                tut2_t:"الخطوة 1، أنشئ بريدك", tut2_d:"وضعنا لك اسم مستخدم مقترحاً من اسمك. عدّله إن أردت (أو اضغط النرد لاسم عشوائي)، اختر النطاق، ثم اضغط إنشاء.",
+                tut3_t:"الخطوة 2، صندوق الوارد", tut3_d:"الرسائل الواردة تظهر هنا تلقائياً كل 5 ثوانٍ. رموز التحقق تُكتشف وتُنسخ بضغطة واحدة.",
+                tut4_t:"الخطوة 3، ملفك الشخصي", tut4_d:"اضغط على صورتك (أعلى الزاوية) لرؤية اسمك وصورتك وجميع عناوينك المحفوظة، وللتبديل بينها.",
+                setup_title:"أنشئ ملفك الشخصي", setup_sub:"أضف اسمك وصورة اختيارية، ثم سننشئ أول بريد إلكتروني لك.",
+                setup_photo_optional:"الصورة اختيارية", setup_name_label:"اسمك", setup_name_ph:"مثال: أحمد",
+                setup_continue:"متابعة", setup_note:"يُحفظ على هذا الجهاز فقط، بدون تسجيل أو كلمة مرور.",
+                t_enter_name:"الرجاء إدخال اسمك أولاً"
+            }
+        };
+        let LANG = localStorage.getItem("app_lang") || "ar";
+        function t(key, ...args) {
+            const v = (I18N[LANG] && I18N[LANG][key]) ?? I18N.en[key] ?? key;
+            return typeof v === "function" ? v(...args) : v;
+        }
+        function applyLang() {
+            document.documentElement.lang = LANG;
+            document.documentElement.dir = LANG === "ar" ? "rtl" : "ltr";
+            document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
+            document.querySelectorAll("[data-i18n-html]").forEach(el => { el.innerHTML = t(el.dataset.i18nHtml); });
+            document.querySelectorAll("[data-i18n-ph]").forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
+            const ll = document.getElementById("langLabel");
+            if (ll) ll.textContent = LANG === "ar" ? "العربية" : "English";
+            hideDomainMenu(); // direction changed, close so it reopens with a correct position
+            renderDomainMenu();
+            renderSavedAccounts();
+            if (!document.getElementById("profilePage").classList.contains("hidden")) renderProfilePage();
+            if (activeEmail) {
+                const cached = JSON.parse(localStorage.getItem("inbox_" + activeEmail) || "[]");
+                renderInbox(cached);
+            } else {
+                document.getElementById("inboxCurrentEmail").textContent = t("no_active_email");
+                document.getElementById("inboxCounter").textContent = t("messages", 0);
+                document.getElementById("inboxList").innerHTML = emptyInboxHTML();
+            }
+            const gb = document.getElementById("generateBtn");
+            if (gb && !gb.disabled) gb.innerHTML = createBtnHTML();
+            applyTabTransform();
+        }
+        function toggleLang() {
+            haptic();
+            LANG = LANG === "ar" ? "en" : "ar";
+            localStorage.setItem("app_lang", LANG);
+            applyLang();
+            showToast(t("t_lang"), "info");
+        }
+
+        // ── escape helpers (prevents broken HTML/onclick from message content) ──
+        function esc(s) {
+            return String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+        }
+        function escAttr(s) { return String(s ?? "").replace(/['"\\]/g, "\\$&"); }
+
+        // ── haptics ─────��──────────────────────────────────────────
+        function haptic(ms = 8) {
+            if (navigator.vibrate) { try { navigator.vibrate(ms); } catch(e) {} }
+        }
+
+        // ── system notifications (APK WebView bridges + Web API) ──
+        const NOTIF_ICON = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"><rect width="96" height="96" rx="22" fill="#0a84ff"/><rect x="18" y="28" width="60" height="40" rx="8" fill="none" stroke="#fff" stroke-width="5"/><polyline points="20,32 48,54 76,32" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+        function requestNotifyPermission() {
+            try {
+                if ("Notification" in window && Notification.permission === "default") {
+                    Notification.requestPermission().catch(() => {});
+                }
+            } catch(e) {}
+        }
+        document.addEventListener("pointerdown", requestNotifyPermission, { once:true });
+
+        function systemNotify(title, body) {
+            // 1) Native bridges injected by common HTML→APK wrappers
+            try {
+                const bridges = [
+                    [window.Android, "showNotification"], [window.Android, "notify"],
+                    [window.AndroidNotify, "notify"], [window.AndroidInterface, "showNotification"],
+                    [window.JSBridge, "showNotification"], [window.app, "notify"]
+                ];
+                for (const [obj, fn] of bridges) {
+                    if (obj && typeof obj[fn] === "function") { obj[fn](title, body); return true; }
+                }
+            } catch(e) {}
+            // 2) Median / GoNative wrapper
+            try {
+                if (window.median?.notifications?.create) { window.median.notifications.create({ title, body }); return true; }
+                if (window.gonative?.notifications?.create) { window.gonative.notifications.create({ title, body }); return true; }
+            } catch(e) {}
+            // 3) Standard Web Notification API
+            try {
+                if ("Notification" in window && Notification.permission === "granted") {
+                    const n = new Notification(title, { body, icon:NOTIF_ICON, badge:NOTIF_ICON, tag:"telymail-" + Date.now(), silent:false });
+                    n.onclick = () => { try { window.focus(); switchViewTab("inbox"); n.close(); } catch(e) {} };
+                    return true;
+                }
+            } catch(e) {}
+            return false;
+        }
+
+        // ── iOS-style notification sound (Web Audio, no asset) ────
+        let audioCtx = null;
+        let soundUnlocked = false;
+        function unlockAudio() {
+            if (soundUnlocked) return;
+            try {
+                audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === "suspended") audioCtx.resume();
+                soundUnlocked = true;
+            } catch(e) {}
+        }
+        document.addEventListener("pointerdown", unlockAudio, { once:false });
+
+        function playNewMailSound() {
+            if (!audioCtx || audioCtx.state !== "running") return;
+            try {
+                const now = audioCtx.currentTime;
+                // soft iOS "tri-tone"-style chime: E6 → C6 → G5
+                const notes = [{ f:1318.5, t:0 }, { f:1046.5, t:0.12 }, { f:784.0, t:0.24 }];
+                notes.forEach(({ f, t }) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = "sine";
+                    osc.frequency.value = f;
+                    gain.gain.setValueAtTime(0, now + t);
+                    gain.gain.linearRampToValueAtTime(0.18, now + t + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + t + 0.45);
+                    osc.connect(gain).connect(audioCtx.destination);
+                    osc.start(now + t);
+                    osc.stop(now + t + 0.5);
+                });
+            } catch(e) {}
+        }
+
+        // ── glass toasts ───────────────────────────────────────────
+        function showToast(message, type = "info") {
+            const container = document.getElementById("toastContainer");
+            const colors = {
+                success: { bg:"rgba(48,209,88,.18)", icon:"#30d158", svg:'<polyline points="20 6 9 17 4 12"/>' },
+                mail:    { bg:"rgba(10,132,255,.18)", icon:"#0a84ff", svg:'<rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,6 12,13 2,6"/>' },
+                error:   { bg:"rgba(255,69,58,.18)",  icon:"#ff453a", svg:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>' },
+                info:    { bg:"rgba(10,132,255,.18)", icon:"#0a84ff", svg:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>' }
+            };
+            const c = colors[type] || colors.info;
+            const toast = document.createElement("div");
+            toast.className = "toast";
+            toast.innerHTML = `
+                <span class="t-icon" style="background:${c.bg}">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="${c.icon}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${c.svg}</svg>
+                </span>
+                <span>${esc(message)}</span>`;
+            container.appendChild(toast);
+            requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add("show")));
+            setTimeout(() => {
+                toast.classList.remove("show");
+                toast.classList.add("hide");
+                setTimeout(() => toast.remove(), 400);
+            }, 2600);
+            // keep max 3 toasts
+            while (container.children.length > 3) container.firstElementChild.remove();
+        }
+
+        // ── domains ────────────────────────────────────────────────
+        async function fetchDomain() {
+            domainList = GUERRILLA_DOMAINS.map(d => ({ domain: d, provider: "guerrilla" }));
+            try {
+                const r = await fetch(API_URL + "/domains");
+                const d = await r.json();
+                const doms = d["hydra:member"] || [];
+                const active = doms.find(x => x.isActive) || doms[0];
+                if (active) domainList.push({ domain: active.domain, provider: "mailtm" });
+            } catch(e) { console.error("[mail.tm domain fetch failed]", e); }
+            domainList.sort((a, b) => a.domain.length - b.domain.length);
+            if (!DOMAIN && domainList.length) selectDomain(domainList[0].domain, domainList[0].provider, false);
+            renderDomainMenu();
+            return DOMAIN;
+        }
+
+        function selectDomain(domain, provider, closeMenu = true) {
+            DOMAIN = domain;
+            DOMAIN_PROVIDER = provider;
+            document.getElementById("domainLabel").textContent = "@" + domain;
+            renderDomainMenu();
+            if (typeof updateEmailPreview === "function") updateEmailPreview();
+            if (closeMenu) { hideDomainMenu(); haptic(); }
+        }
+
+        // feature notes shown next to each domain (hard-to-block info)
+        const DOMAIN_FEATURES = {
+            "grr.la":          { key: "d_short", color: "#30d158" },
+            "spam4.me":        { key: "d_less",  color: "#30d158" },
+            "pokemail.net":    { key: "d_rare",  color: "#0a84ff" },
+            "sharklasers.com": { key: "d_pop",   color: "#f59e0b" }
+        };
+        function domainFeature(d) {
+            if (DOMAIN_FEATURES[d.domain]) return { note: t(DOMAIN_FEATURES[d.domain].key), color: DOMAIN_FEATURES[d.domain].color };
+            if (d.provider === "mailtm") return { note: t("d_hard"), color: "#0a84ff" };
+            return { note: "", color: "#666" };
+        }
+        function renderDomainMenu() {
+            const menu = document.getElementById("domainMenu");
+            const header = `<span class="px-3 pt-1.5 pb-1 text-[10px] font-bold text-neutral-500 uppercase tracking-widest">${esc(t("domain_pick"))}</span>`;
+            menu.innerHTML = header + domainList.map(d => {
+                const f = domainFeature(d);
+                return `
+                <button onclick="selectDomain('${escAttr(d.domain)}','${escAttr(d.provider)}')" class="ios-btn-active flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-colors ${d.domain === DOMAIN ? "bg-[#0a84ff]/15 text-[#3395ff]" : "text-neutral-300 hover:bg-white/5"}">
+                    <span class="flex flex-col items-start min-w-0">
+                        <span class="truncate">@${esc(d.domain)}</span>
+                        ${f.note ? `<span class="text-[9px] font-semibold mt-0.5" style="color:${f.color}">${esc(f.note)}</span>` : ""}
+                    </span>
+                    ${d.domain === DOMAIN ? '<i class="fa-solid fa-check text-[10px]"></i>' : ""}
+                </button>`;
+            }).join("");
+        }
+
+        function positionDomainMenu() {
+            // The menu must live directly under <body>: position:fixed breaks inside
+            // #tabSlideTrack because its CSS transform creates a new containing block,
+            // which made the menu appear far away from the button.
+            const btn  = document.getElementById("domainBtn");
+            const menu = document.getElementById("domainMenu");
+            if (menu.parentElement !== document.body) document.body.appendChild(menu);
+            const r = btn.getBoundingClientRect();
+            const menuW = menu.offsetWidth || 256; // measure real width (w-64 fallback)
+            const isRTL = document.documentElement.dir === "rtl";
+            // anchor to the button edge depending on direction, then clamp into the viewport
+            let left = isRTL ? r.left : r.right - menuW;
+            left = Math.max(8, Math.min(left, window.innerWidth - menuW - 8));
+            menu.style.left = left + "px";
+            menu.style.top  = (r.bottom + 6) + "px";
+            menu.style.maxHeight = Math.max(160, window.innerHeight - r.bottom - 20) + "px";
+            menu.style.transformOrigin = isRTL ? "top left" : "top right";
+        }
+        async function toggleDomainMenu(e) {
+            e.stopPropagation();
+            const menu = document.getElementById("domainMenu");
+            const isOpen = !menu.classList.contains("hidden-anim");
+            if (isOpen) { hideDomainMenu(); return; }
+            // if domains failed to load earlier (e.g. no connection), retry before opening
+            if (!domainList.length) await fetchDomain();
+            renderDomainMenu();
+            positionDomainMenu();
+            requestAnimationFrame(() => menu.classList.remove("hidden-anim"));
+            haptic();
+        }
+        function hideDomainMenu() {
+            document.getElementById("domainMenu").classList.add("hidden-anim");
+        }
+        document.addEventListener("click", e => {
+            if (!e.target.closest("#domainBtn") && !e.target.closest("#domainMenu")) hideDomainMenu();
+        });
+        window.addEventListener("resize", hideDomainMenu);
+        window.addEventListener("scroll", hideDomainMenu, { passive:true });
+
+        // ── badge helpers ────────────────────────────���─────────────
+        function showBadge(el, n) { el.textContent = n; el.style.display = "flex"; el.classList.remove("hidden"); }
+        function hideBadge(el) { el.style.display = "none"; el.classList.add("hidden"); }
+
+        // live preview of the full address under the input
+        function updateEmailPreview() {
+            const row = document.getElementById("emailPreviewRow");
+            const prev = document.getElementById("emailPreview");
+            if (!row || !prev) return;
+            const u = document.getElementById("usernameInput").value.trim();
+            if (u && DOMAIN) {
+                prev.textContent = u + "@" + DOMAIN;
+                row.classList.remove("hidden");
+                row.classList.add("flex");
+            } else {
+                row.classList.add("hidden");
+                row.classList.remove("flex");
+            }
+        }
+
+        document.getElementById("usernameInput").addEventListener("input", e => {
+            e.target.value = e.target.value.toLowerCase().replace(/[^a-z0-9._-]/g, "");
+            updateEmailPreview();
+        });
+        document.getElementById("usernameInput").addEventListener("keydown", e => {
+            if (e.key === "Enter") document.getElementById("generateBtn").click();
+        });
+
+        function randomUsername() {
+            const words = ["nova","pixel","echo","luna","atlas","orbit","zen","drift","flux","spark","shadow","comet","blaze","frost","viper","ghost","raven","storm","cyber","neon"];
+            const w = words[Math.floor(Math.random() * words.length)];
+            const n = Math.floor(100 + Math.random() * 900);
+            const input = document.getElementById("usernameInput");
+            input.value = w + n;
+            input.focus();
+            updateEmailPreview();
+            haptic();
+        }
+
+        // ── one-time welcome splash ───────────────────────────────��
+        function maybeShowWelcomeSplash() {
+            if (localStorage.getItem("seen_welcome")) return;
+            document.getElementById("welcomeSplash").classList.remove("hidden");
+        }
+        function closeWelcomeSplash() {
+            haptic(15);
+            localStorage.setItem("seen_welcome", "1");
+            const s = document.getElementById("welcomeSplash");
+            s.classList.add("closing");
+            setTimeout(() => { s.classList.add("hidden"); s.classList.remove("closing"); }, 450);
+            switchViewTab("mail");
+            const input = document.getElementById("usernameInput");
+            if (input && !input.value) setTimeout(() => input.focus(), 500);
+        }
+
+        window.onload = () => {
+            applyLang();
+            fetchDomain();
+            renderSavedAccounts();
+            if (savedAccounts.length > 0) loadInbox(savedAccounts[0].email, savedAccounts[0].token, savedAccounts[0].provider);
+            maybeShowWelcomeSplash();
+        };
+
+        // ── iOS slide switch (RTL-aware) ───────────────────────────
+        function applyTabTransform() {
+            const isRTL = document.documentElement.dir === "rtl";
+            document.getElementById("tabSlideTrack").style.transform =
+                currentTab === "inbox" ? (isRTL ? "translateX(50%)" : "translateX(-50%)") : "translateX(0)";
+        }
+        function switchViewTab(tab) {
+            if (tab === currentTab) return;
+            currentTab = tab;
+            haptic();
+            applyTabTransform();
+            ["mail","inbox"].forEach(t => {
+                const btn = document.getElementById("btnTab" + t.charAt(0).toUpperCase() + t.slice(1));
+                btn.classList.toggle("text-[#0a84ff]",  t === tab);
+                btn.classList.toggle("text-neutral-500", t !== tab);
+            });
+            if (tab === "inbox") hideBadge(document.getElementById("inboxTabBadge"));
+        }
+
+        // ── Gmail-style full-screen profile page ───────────────────
+        function getProfilePhoto() { return localStorage.getItem("profile_photo") || null; }
+        function getProfileName()  { return localStorage.getItem("profile_name") || t("guest_user"); }
+
+        function avatarHTML(letter, photo, sizeClass, textClass) {
+            if (photo) return `<img src="${photo}" alt="Profile photo" class="${sizeClass} rounded-full object-cover">`;
+            return `<span class="${sizeClass} rounded-full bg-[#0a84ff] flex items-center justify-center text-white ${textClass} font-extrabold select-none">${esc(letter)}</span>`;
+        }
+
+        function updateProfileMenu() {
+            // header avatar (small)
+            const initial = (getProfileName() !== t("guest_user") ? getProfileName().charAt(0).toUpperCase() : (activeEmail ? activeEmail.charAt(0).toUpperCase() : "")) || "?";
+            const photo = getProfilePhoto();
+            const small = document.getElementById("profileAvatar");
+            if (photo) { small.innerHTML = `<img src="${photo}" alt="" class="w-8 h-8 rounded-full object-cover">`; }
+            else { small.textContent = initial; }
+        }
+
+        function openProfilePage() {
+            haptic();
+            renderProfilePage();
+            const p = document.getElementById("profilePage");
+            p.classList.remove("hidden");
+            p.classList.add("opening");
+            requestAnimationFrame(() => requestAnimationFrame(() => p.classList.remove("opening")));
+        }
+        function closeProfilePage() {
+            haptic();
+            const p = document.getElementById("profilePage");
+            p.classList.add("closing");
+            setTimeout(() => { p.classList.add("hidden"); p.classList.remove("closing"); }, 300);
+        }
+
+        function renderProfilePage() {
+            const photo = getProfilePhoto();
+            const name  = getProfileName();
+            const initial = name.charAt(0).toUpperCase() || "?";
+
+            // big avatar
+            const lg = document.getElementById("profilePhotoLg");
+            if (photo) { lg.innerHTML = `<img src="${photo}" alt="Profile photo" class="w-24 h-24 rounded-full object-cover">`; }
+            else { lg.textContent = initial; }
+
+            document.getElementById("profileNameDisplay").textContent = name;
+            document.getElementById("profilePageEmail").textContent = activeEmail || t("no_active_email_lc");
+            document.getElementById("profilePageCount").textContent = savedAccounts.length;
+
+            // accounts list, Gmail style rows
+            const list = document.getElementById("profileAccountsList");
+            if (savedAccounts.length === 0) {
+                list.innerHTML = `<p class="text-xs text-neutral-500 font-semibold text-center py-4">${esc(t("no_emails_yet"))}</p>`;
+            } else {
+                list.innerHTML = savedAccounts.map(a => {
+                    const isActive = a.email === activeEmail;
+                    const letter = a.email.charAt(0).toUpperCase();
+                    return `
+                    <div class="flex items-center gap-3 px-3 py-2.5 rounded-2xl ${isActive ? "bg-[#0a84ff]/12 border border-[#0a84ff]/25" : "hover:bg-white/5 border border-transparent"} transition-colors">
+                        <button onclick="profileSwitch('${escAttr(a.email)}','${escAttr(a.token)}','${escAttr(a.provider || "mailtm")}')" class="ios-btn-active flex items-center gap-3 flex-1 min-w-0 text-left">
+                            <span class="w-10 h-10 rounded-full ${isActive ? "bg-[#0a84ff]" : "bg-[#26262e] border border-white/10"} flex items-center justify-center text-sm font-extrabold ${isActive ? "text-white" : "text-neutral-300"} shrink-0 select-none">${esc(letter)}</span>
+                            <span class="flex flex-col min-w-0">
+                                <span class="text-[13px] font-bold ${isActive ? "text-white" : "text-neutral-200"} truncate ltr-text">${esc(a.email)}</span>
+                                <span class="text-[10px] font-semibold ${isActive ? "text-[#3395ff]" : "text-neutral-500"}">${isActive ? esc(t("active_now")) : esc(t("tap_switch"))}</span>
+                            </span>
+                        </button>
+                        ${isActive ? '<i class="fa-solid fa-circle-check text-[#0a84ff] text-sm shrink-0"></i>'
+                                   : `<button onclick="deleteAccount(event,'${escAttr(a.email)}');renderProfilePage()" aria-label="Delete ${escAttr(a.email)}" class="ios-btn-active w-8 h-8 rounded-full flex items-center justify-center text-neutral-600 hover:text-red-400 transition-colors shrink-0"><i class="fa-regular fa-trash-can text-xs"></i></button>`}
+                    </div>`;
+                }).join("");
+            }
+        }
+
+        function profileSwitch(email, token, provider) {
+            switchAccount(email, token, provider);
+            renderProfilePage();
+            showToast(t("t_switched", email.split("@")[0]), "success");
+        }
+
+        function editProfileName() {
+            haptic();
+            const current = getProfileName();
+            const name = prompt(t("prompt_name"), current === t("guest_user") ? "" : current);
+            if (name === null) return;
+            const clean = name.trim().slice(0, 30);
+            if (clean) localStorage.setItem("profile_name", clean);
+            else localStorage.removeItem("profile_name");
+            renderProfilePage();
+            updateProfileMenu();
+        }
+
+        function handlePhotoUpload(e) {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            if (!file.type.startsWith("image/")) { showToast(t("t_choose_image"), "error"); return; }
+            const reader = new FileReader();
+            reader.onload = () => {
+                // downscale to keep localStorage small
+                const img = new Image();
+                img.onload = () => {
+                    const c = document.createElement("canvas");
+                    const size = 192;
+                    c.width = size; c.height = size;
+                    const ctx = c.getContext("2d");
+                    const min = Math.min(img.width, img.height);
+                    ctx.drawImage(img, (img.width - min) / 2, (img.height - min) / 2, min, min, 0, 0, size, size);
+                    try {
+                        localStorage.setItem("profile_photo", c.toDataURL("image/jpeg", 0.85));
+                        renderProfilePage();
+                        updateProfileMenu();
+                        showToast(t("t_photo_updated"), "success");
+                    } catch(err) { showToast(t("t_img_large"), "error"); }
+                };
+                img.src = reader.result;
+            };
+            reader.readAsDataURL(file);
+            e.target.value = "";
+        }
+
+        function profileCopyEmail() {
+            if (!activeEmail) { showToast(t("t_create_first"), "info"); return; }
+            navigator.clipboard.writeText(activeEmail).then(() => showToast(t("t_email_copied"), "success")).catch(() => {});
+            haptic();
+        }
+
+        // ── help sheet (What is Tely Mail?) ────────────────────────
+        function openHelpSheet() {
+            haptic();
+            const s = document.getElementById("helpSheet");
+            const inner = document.getElementById("helpSheetInner");
+            s.classList.remove("hidden");
+            setTimeout(() => { s.classList.remove("opacity-0"); inner.classList.remove("translate-y-full"); }, 10);
+        }
+        function closeHelpSheet() {
+            haptic();
+            const s = document.getElementById("helpSheet");
+            const inner = document.getElementById("helpSheetInner");
+            s.classList.add("opacity-0"); inner.classList.add("translate-y-full");
+            setTimeout(() => s.classList.add("hidden"), 420);
+            localStorage.setItem("seen_intro", "1");
+        }
+
+        // ── local welcome email (Tely Mail, English) ───────────────
+        function injectWelcomeEmail(email) {
+            const id = "local-welcome-" + Date.now();
+            const htmlBody = LANG === "ar" ? `
+                <div dir="rtl" style="font-family:-apple-system,Segoe UI,Tahoma,Arial,sans-serif;color:#1a1a1a;line-height:1.8;font-size:14px;text-align:right">
+                    <h2 style="color:#0a84ff;margin:0 0 12px">مرحباً بك في تيلي ميل!</h2>
+                    <p>إيميلك الدائم جاهز:</p>
+                    <p dir="ltr" style="background:#f0f6ff;border:1px solid #cce0ff;border-radius:10px;padding:10px 14px;font-weight:bold;color:#0a64d0;text-align:center">${esc(email)}</p>
+                    <p>الرسائل تظهر تلقائياً، وحساباتك ورسائلك محفوظة على جهازك.</p>
+                    <p><strong>فريق تيلي ميل</strong></p>
+                </div>` : `
+                <div style="font-family:-apple-system,Segoe UI,Arial,sans-serif;color:#1a1a1a;line-height:1.7;font-size:14px">
+                    <h2 style="color:#0a84ff;margin:0 0 12px">Welcome to Tely Mail!</h2>
+                    <p>Your permanent email is ready:</p>
+                    <p style="background:#f0f6ff;border:1px solid #cce0ff;border-radius:10px;padding:10px 14px;font-weight:bold;color:#0a64d0">${esc(email)}</p>
+                    <p>Messages appear automatically, and your accounts and mail are saved on your device.</p>
+                    <p><strong>The Tely Mail Team</strong></p>
+                </div>`;
+            const mail = {
+                id,
+                from: { address: "welcome@telymail.app" },
+                subject: t("w_subject"),
+                intro: t("w_intro"),
+                seen: false,
+                createdAt: new Date().toISOString()
+            };
+            const cached = JSON.parse(localStorage.getItem("inbox_" + email) || "[]");
+            cached.unshift(mail);
+            localStorage.setItem("inbox_" + email, JSON.stringify(cached));
+            try { localStorage.setItem("mailbody_" + email + "_" + id, JSON.stringify({ subject: mail.subject, fromAddr: mail.from.address, htmlBody, textBody: "" })); } catch(e) {}
+        }
+
+        // ── block provider welcome emails (precise, never touches real mail) ──
+        function isProviderWelcome(from, subject, mailId) {
+            const f = String(from || "").toLowerCase();
+            const s = String(subject || "").toLowerCase();
+            // Guerrilla Mail's auto welcome is always mail_id 1 from no-reply@guerrillamail.com
+            if (String(mailId) === "1" && f.includes("guerrillamail.com")) return true;
+            if (f.includes("guerrillamail.com") && s.includes("welcome to guerrilla mail")) return true;
+            if (f.includes("mail.tm") && s.includes("welcome")) return true;
+            return false;
+        }
+
+        // ── create email ───────────────────────────────────────────
+        document.getElementById("generateBtn").addEventListener("click", async () => {
+            const user = document.getElementById("usernameInput").value.trim().toLowerCase();
+            if (!user) { showToast(t("t_enter_username"), "error"); return; }
+            const btn  = document.getElementById("generateBtn");
+            const card = document.getElementById("createEmailCard");
+            if (btn.disabled) return;
+            btn.disabled = true;
+            haptic();
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-sm"></i><span>${esc(t("btn_creating"))}</span>`;
+            if (!DOMAIN) await fetchDomain();
+            if (!DOMAIN) { showCreateError(t("t_no_conn")); return; }
+            const email = user + "@" + DOMAIN, pw = "supersecretpassword123";
+            try {
+                let token = null;
+                if (DOMAIN_PROVIDER === "guerrilla") {
+                    const r1 = await fetch(GUERRILLA_API + "?f=get_email_address&lang=en");
+                    const d1 = await r1.json();
+                    if (d1.sid_token) {
+                        const r2 = await fetch(GUERRILLA_API + "?f=set_email_user&email_user=" + encodeURIComponent(user) + "&lang=en&sid_token=" + d1.sid_token);
+                        const d2 = await r2.json();
+                        if (d2.email_addr) token = d2.sid_token || d1.sid_token;
+                    }
+                } else {
+                    const r1 = await fetch(API_URL + "/accounts", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({address:email,password:pw}) });
+                    if (r1.status === 201 || r1.status === 400 || r1.status === 422) {
+                        const r2 = await fetch(API_URL + "/token", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({address:email,password:pw}) });
+                        const d2 = await r2.json();
+                        if (!d2.token && r1.status === 422) { showCreateError(t("t_taken")); return; }
+                        token = d2.token || null;
+                    }
+                }
+                if (token) {
+                    card.classList.add("success");
+                    btn.style.transition = "background-color .3s ease";
+                    btn.style.backgroundColor = "#30d158";
+                    btn.innerHTML = `<svg class="check-anim" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="8 12 11 15 16 9"/></svg>`;
+                    haptic(20);
+                    showToast(t("t_created"), "success");
+                    // one-time hint: emails are managed from the Profile
+                    if (!localStorage.getItem("profile_hint_shown")) {
+                        localStorage.setItem("profile_hint_shown", "1");
+                        setTimeout(() => showToast(t("t_saved_profile"), "info"), 1800);
+                    }
+
+                    saveAccountData(email, token, DOMAIN_PROVIDER);
+                    injectWelcomeEmail(email);
+                    loadInbox(email, token, DOMAIN_PROVIDER);
+                    document.getElementById("usernameInput").value = "";
+
+                    await new Promise(res => setTimeout(res, 1300));
+
+                    card.classList.remove("success");
+                    btn.style.backgroundColor = "";
+                    btn.style.transition = "";
+                    btn.disabled = false;
+                    btn.innerHTML = createBtnHTML();
+                    switchViewTab("inbox");
+                    return;
+                }
+            } catch(e) { console.error(e); }
+            showCreateError(t("t_failed"));
+        });
+
+        function showCreateError(msg) {
+            const btn = document.getElementById("generateBtn");
+            btn.style.transition = "background-color .3s ease";
+            btn.style.backgroundColor = "#ff453a";
+            btn.innerHTML = `<i class="fa-solid fa-circle-exclamation text-sm"></i><span>${esc(msg)}</span>`;
+            haptic(30);
+            setTimeout(() => {
+                btn.style.backgroundColor = "";
+                btn.style.transition = "";
+                btn.disabled = false;
+                btn.innerHTML = createBtnHTML();
+            }, 2200);
+        }
+
+        function createBtnHTML() {
+            return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"/><polyline points="22,6 12,13 2,6"/></svg><span>${esc(t("btn_create"))}</span>`;
+        }
+
+        // ── account management ─────────────────────────────────────
+        function saveAccountData(email, token, provider) {
+            if (!savedAccounts.some(a => a.email === email)) {
+                savedAccounts.unshift({ email, token, provider: provider || "mailtm", viewed: false });
+                localStorage.setItem("saved_emails", JSON.stringify(savedAccounts));
+                renderSavedAccounts();
+            }
+        }
+
+        function loadInbox(email, token, provider) {
+            activeEmail = email;
+            activeToken = token;
+            activeProvider = provider || "mailtm";
+            document.getElementById("inboxCurrentEmail").textContent = email;
+            document.getElementById("inboxCopyBtn").classList.remove("hidden");
+            updateProfileMenu();
+            const cached = localStorage.getItem("inbox_" + email);
+            renderInbox(cached ? JSON.parse(cached) : []);
+            lastMailIds = null;
+            lastInboxSig = null;
+            if (inboxInterval) clearInterval(inboxInterval);
+            checkInbox(true); // first load animates
+            inboxInterval = setInterval(() => checkInbox(false), 5000); // silent auto-refresh
+        }
+
+        function switchAccount(email, token, provider) {
+            activeEmail = email;
+            activeToken = token;
+            activeProvider = provider || (savedAccounts.find(a => a.email === email)?.provider) || "mailtm";
+            const idx = savedAccounts.findIndex(a => a.email === email);
+            if (idx !== -1 && !savedAccounts[idx].viewed) {
+                savedAccounts[idx].viewed = true;
+                localStorage.setItem("saved_emails", JSON.stringify(savedAccounts));
+            }
+            document.getElementById("inboxCurrentEmail").textContent = email;
+            document.getElementById("inboxCopyBtn").classList.remove("hidden");
+            renderSavedAccounts();
+            const cached = localStorage.getItem("inbox_" + email);
+            renderInbox(cached ? JSON.parse(cached) : []);
+            lastMailIds = null;
+            lastInboxSig = null;
+            if (inboxInterval) clearInterval(inboxInterval);
+            checkInbox(true); // first load after switch animates
+            inboxInterval = setInterval(() => checkInbox(false), 5000); // silent auto-refresh
+        }
+
+        function selectAccount(email) {
+            const acc = savedAccounts.find(a => a.email === email);
+            if (!acc) return;
+            haptic();
+            switchAccount(acc.email, acc.token, acc.provider);
+            switchViewTab("inbox");
+        }
+
+        function purgeMailBodies(email) {
+            // remove all cached message bodies for this address
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+                const k = localStorage.key(i);
+                if (k && k.startsWith("mailbody_" + email + "_")) localStorage.removeItem(k);
+            }
+        }
+
+        function deleteAccount(ev, email) {
+            ev.stopPropagation();
+            haptic(15);
+            savedAccounts = savedAccounts.filter(a => a.email !== email);
+            localStorage.setItem("saved_emails", JSON.stringify(savedAccounts));
+            localStorage.removeItem("inbox_" + email);
+            localStorage.removeItem("deleted_" + email);
+            purgeMailBodies(email);
+            renderSavedAccounts();
+            showToast(t("t_acc_deleted"), "info");
+            if (activeEmail === email) {
+                if (savedAccounts.length > 0) {
+                    const next = savedAccounts[0];
+                    switchAccount(next.email, next.token, next.provider);
+                } else {
+                    resetInboxUI();
+                }
+            }
+        }
+
+        function resetInboxUI() {
+            activeEmail = ""; activeToken = "";
+            lastMailIds = null; lastInboxSig = null;
+            document.getElementById("inboxCopyBtn").classList.add("hidden");
+            document.getElementById("inboxCurrentEmail").textContent = t("no_active_email");
+            document.getElementById("inboxCounter").textContent = t("messages", 0);
+            document.getElementById("inboxList").innerHTML = emptyInboxHTML();
+            hideBadge(document.getElementById("inboxTabBadge"));
+            if (inboxInterval) clearInterval(inboxInterval);
+        }
+
+        function clearHistory() {
+            if (savedAccounts.length === 0) { showToast(t("t_nothing"), "info"); return; }
+            savedAccounts.forEach(a => {
+                localStorage.removeItem("inbox_" + a.email);
+                localStorage.removeItem("deleted_" + a.email);
+                purgeMailBodies(a.email);
+            });
+            savedAccounts = [];
+            localStorage.removeItem("saved_emails");
+            resetInboxUI();
+            renderSavedAccounts();
+            haptic(20);
+            showToast(t("t_cleared"), "success");
+        }
+
+        function renderSavedAccounts() {
+            updateProfileMenu();
+            const badge = document.getElementById("historyBadge");
+            const unviewed = savedAccounts.filter(a => !a.viewed).length;
+            if (unviewed > 0) { showBadge(badge, unviewed); }
+            else              { hideBadge(badge); }
+        }
+
+        // ── inbox ───────────────────────────────────────��──────────
+        let lastMailIds = null; // null = first load (don't notify)
+        let lastInboxSig = null; // signature of last rendered inbox (skip re-render when unchanged)
+        async function checkInbox(manual = false) {
+            if (!activeToken) {
+                if (manual) showToast(t("t_no_active"), "info");
+                return;
+            }
+            const icon = document.getElementById("refreshIcon");
+            // spinner + haptic only on manual refresh, auto-refresh stays silent
+            if (manual) { icon.classList.add("fa-spin"); haptic(); }
+            try {
+                let mails = [];
+                if (activeProvider === "guerrilla") {
+                    const r = await fetch(GUERRILLA_API + "?f=check_email&seq=0&sid_token=" + activeToken);
+                    const d = await r.json();
+                    mails = (d.list || []).filter(m => !isProviderWelcome(m.mail_from, m.mail_subject, m.mail_id)).map(m => ({
+                        id: String(m.mail_id),
+                        from: { address: m.mail_from },
+                        subject: m.mail_subject,
+                        intro: m.mail_excerpt,
+                        seen: m.mail_read === 1 || m.mail_read === "1",
+                        createdAt: new Date(parseInt(m.mail_timestamp) * 1000).toISOString()
+                    }));
+                } else {
+                    const r = await fetch(API_URL + "/messages", { headers:{"Authorization":"Bearer " + activeToken} });
+                    if (r.status === 401) { clearInterval(inboxInterval); return; }
+                    const d = await r.json();
+                    mails = (d["hydra:member"] || []).filter(m => !isProviderWelcome(m.from?.address, m.subject, m.id));
+                }
+
+                // ── merge with cached inbox so emails NEVER disappear ──
+                // (some providers stop returning a message after a few seconds;
+                //  we keep everything we've already seen unless the user deletes it)
+                const cachedInbox = JSON.parse(localStorage.getItem("inbox_" + activeEmail) || "[]");
+                const deletedIds = new Set(JSON.parse(localStorage.getItem("deleted_" + activeEmail) || "[]"));
+                const byId = new Map();
+                cachedInbox.forEach(m => byId.set(m.id, m));
+                mails.forEach(m => byId.set(m.id, m)); // fresh data wins (e.g. seen state)
+                mails = [...byId.values()]
+                    .filter(m => !deletedIds.has(m.id))
+                    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+                // detect NEW mail → sound + toast
+                const ids = new Set(mails.map(m => m.id));
+                if (lastMailIds !== null) {
+                    const fresh = mails.filter(m => !lastMailIds.has(m.id));
+                    if (fresh.length > 0) {
+                        playNewMailSound();
+                        haptic([30, 50, 30]);
+                        const f = fresh[0];
+                        const title = fresh.length === 1 ? (f.subject || t("new_message")) : t("t_new_mails", fresh.length);
+                        const sub   = fresh.length === 1 ? (t("from") + (f.from?.address || t("unknown"))) : activeEmail;
+                        systemNotify("Tely Mail, " + title, sub);
+                        showToast(fresh.length === 1
+                            ? t("t_new_mail", f.subject || f.from?.address || t("new_message"))
+                            : t("t_new_mails", fresh.length), "mail");
+                    }
+                }
+                lastMailIds = ids;
+
+                localStorage.setItem("inbox_" + activeEmail, JSON.stringify(mails));
+                // On silent auto-refresh, skip re-render if the inbox is unchanged (no flicker/shake)
+                const sig = mails.map(m => m.id + (m.seen ? "1" : "0")).join(",");
+                if (manual || sig !== lastInboxSig) {
+                    renderInbox(mails, manual); // animate only on manual refresh / first load
+                }
+                lastInboxSig = sig;
+            } catch(e) {
+                console.error(e);
+                if (manual) showToast(t("t_refresh_failed"), "error");
+            }
+            finally { if (manual) setTimeout(() => icon.classList.remove("fa-spin"), 600); }
+        }
+
+        function renderInbox(mails, animate = false) {
+            const c = document.getElementById("inboxList");
+            document.getElementById("inboxCounter").textContent = t("messages", mails.length);
+            if (!mails.length) {
+                c.innerHTML = `<div class="waiting-box bg-[#1a1a22]/20 border border-white/10">
+                    <div class="w-14 h-14 rounded-full bg-[#1a1a1d] border border-white/10 flex items-center justify-center mb-1">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0a84ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="4" width="20" height="16" rx="2"/>
+                            <polyline points="22,6 12,13 2,6"/>
+                            <circle cx="18" cy="18" r="4" fill="#0a84ff" stroke="none" opacity="0.15"/>
+                            <path d="M18 16v2l1 1" stroke="#0a84ff" stroke-width="1.8"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-xs font-extrabold text-neutral-200 uppercase tracking-widest mb-1">${esc(t("waiting_title"))}</p>
+                        <p class="text-[11px] text-neutral-600 font-medium">${esc(t("waiting_sub"))}</p>
+                    </div>
+                    <div class="flex items-center gap-1.5 mt-1">
+                        <i class="fa-solid fa-spinner fa-spin text-[#0a84ff] text-xs"></i>
+                        <span class="text-[10px] text-neutral-600 font-semibold">${esc(t("checking"))}</span>
+                    </div>
+                </div>`;
+                updateInboxTabBadge(mails);
+                return;
+            }
+            c.innerHTML = mails.map((m, i) => {
+                const s = senderInfo(m);
+                const unseen = !m.seen;
+                const intro = decodeEntities(m.intro || "");
+                return `<div onclick="openEmail('${escAttr(m.id)}')" role="button" tabindex="0" class="${animate ? "mail-in " : ""}ios-btn-active ios-blur border ${unseen ? "border-[#0a84ff]/35 mail-unread" : "border-white/10"} p-3.5 rounded-[22px] flex items-start gap-3 cursor-pointer transition-colors duration-200"${animate ? ` style="animation-delay:${Math.min(i * 45, 300)}ms"` : ""}>
+                <span class="mail-avatar shrink-0 select-none" style="background:${s.color}1f;color:${s.color};border:1px solid ${s.color}40" aria-hidden="true">${esc(s.initial)}</span>
+                <div class="flex flex-col gap-1 min-w-0 flex-1" dir="auto">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-[13px] ${unseen ? "font-extrabold text-white" : "font-bold text-neutral-300"} truncate">${esc(s.name)}</span>
+                        <span class="flex items-center gap-1.5 shrink-0">
+                            ${unseen ? '<span class="w-2 h-2 rounded-full bg-[#0a84ff]" aria-label="Unread"></span>' : ""}
+                            <span class="text-[10px] font-bold text-neutral-500" style="font-variant-numeric:tabular-nums">${esc(formatMailTime(m.createdAt))}</span>
+                        </span>
+                    </div>
+                    <h4 class="text-xs ${unseen ? "font-bold text-neutral-100" : "font-semibold text-neutral-400"} truncate">${esc(decodeEntities(m.subject || "") || t("no_subject"))}</h4>
+                    ${intro ? `<p class="mail-intro text-[11px] text-neutral-500 font-medium leading-relaxed">${esc(intro)}</p>` : ""}
+                    <div class="flex items-center justify-between gap-2 mt-0.5">
+                        <span class="text-[10px] font-semibold text-neutral-600 truncate ltr-text">${esc(s.address)}</span>
+                        <button onclick="deleteMessage(event,'${escAttr(m.id)}')" aria-label="Delete message" class="ios-btn-active w-7 h-7 rounded-lg bg-white/5 hover:bg-red-500/10 flex items-center justify-center text-neutral-500 hover:text-red-400 transition-colors shrink-0">
+                            <i class="fa-regular fa-trash-can text-[10px]"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+            }).join("");
+            updateInboxTabBadge(mails);
+        }
+
+        // sender name/address/avatar from "Name <a@b.c>" or plain address (never crashes on missing data)
+        const AVATAR_COLORS = ["#0a84ff","#30d158","#ff9f0a","#ff453a","#64d2ff","#bf5af2","#ffd60a","#ff6482"];
+        function senderInfo(m) {
+            const raw = decodeEntities(String(m?.from?.address || m?.from || "")).trim();
+            let name = "", address = raw;
+            const match = raw.match(/^"?([^"<]*)"?\s*<([^>]+)>$/);
+            if (match) { name = match[1].trim(); address = match[2].trim(); }
+            if (!name) name = (address.split("@")[0] || "").replace(/[._-]+/g, " ").trim();
+            if (!name) name = t("unknown");
+            // capitalize each word for nicer display
+            name = name.replace(/\b\w/g, ch => ch.toUpperCase());
+            const initial = (name.charAt(0) || "?").toUpperCase();
+            let hash = 0;
+            for (let i = 0; i < address.length; i++) hash = (hash * 31 + address.charCodeAt(i)) >>> 0;
+            return { name, address: address || t("unknown"), initial, color: AVATAR_COLORS[hash % AVATAR_COLORS.length] };
+        }
+
+        // decode HTML entities once (guerrilla excerpts arrive pre-encoded, e.g. "&amp;")
+        function decodeEntities(s) {
+            if (!s || !/[&<]/.test(s)) return s || "";
+            const el = document.createElement("textarea");
+            el.innerHTML = s;
+            return el.value;
+        }
+
+        function formatMailTime(dateStr) {
+            const d = new Date(dateStr), now = new Date();
+            if (isNaN(d.getTime())) return "";
+            const sameDay = d.toDateString() === now.toDateString();
+            return sameDay
+                ? d.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"})
+                : d.toLocaleDateString([], {month:"short", day:"numeric"});
+        }
+
+        function updateInboxTabBadge(mails) {
+            const badge = document.getElementById("inboxTabBadge");
+            const unread = (mails || []).filter(m => !m.seen).length;
+            if (unread > 0 && currentTab !== "inbox") showBadge(badge, unread);
+            else hideBadge(badge);
+        }
+
+        async function deleteMessage(ev, id) {
+            ev.stopPropagation();
+            if (!activeToken) return;
+            haptic(15);
+            try {
+                // local welcome emails only live on the device, never call the server for them.
+                // server failures must NOT block the local delete (works offline too)
+                if (!String(id).startsWith("local-")) {
+                    try {
+                        if (activeProvider === "guerrilla") {
+                            await fetch(GUERRILLA_API + "?f=del_email&email_ids%5B%5D=" + encodeURIComponent(id) + "&sid_token=" + activeToken);
+                        } else {
+                            await fetch(API_URL + "/messages/" + id, { method:"DELETE", headers:{"Authorization":"Bearer " + activeToken} });
+                        }
+                    } catch(serverErr) { console.error(serverErr); }
+                }
+                localStorage.removeItem("mailbody_" + activeEmail + "_" + id);
+                const cached = JSON.parse(localStorage.getItem("inbox_" + activeEmail) || "[]").filter(m => m.id !== id);
+                localStorage.setItem("inbox_" + activeEmail, JSON.stringify(cached));
+                // remember deleted ids so the server can't resurrect them on next refresh
+                const deletedIds = JSON.parse(localStorage.getItem("deleted_" + activeEmail) || "[]");
+                if (!deletedIds.includes(id)) deletedIds.push(id);
+                localStorage.setItem("deleted_" + activeEmail, JSON.stringify(deletedIds));
+                if (lastMailIds) lastMailIds.delete(id);
+                renderInbox(cached);
+            } catch(e) { console.error(e); }
+        }
+
+        function emptyInboxHTML() {
+            return `<div class="waiting-box border border-dashed border-white/10">
+                <i class="fa-regular fa-folder-open text-3xl text-neutral-500"></i>
+                <p class="text-xs font-bold text-neutral-500 uppercase tracking-wider">${esc(t("empty_inbox"))}</p>
+            </div>`;
+        }
+
+        // ── smart OTP detection ─────────────────────────────────────
+        // Scores every numeric candidate instead of grabbing the first match,
+        // so years (2026), dates, phone numbers and prices are never copied.
+        function detectOTP(text) {
+            if (!text) return null;
+            const src = String(text)
+                .replace(/\u00a0/g, " ")
+                // digits inside email addresses and links are never OTP codes
+                .replace(/[^\s<>"']+@[^\s<>"']+\.[^\s<>"']+/g, " ")
+                .replace(/https?:\/\/[^\s<>"']+/g, " ");
+            const KEYWORDS = /(code|otp|pin\b|passcode|one[\s-]?time|verif|confirm|authenticat|security|2fa|token|\bرمز|كود|التحقق|التفعيل|تأكيد|تحقق)/i;
+            const isYear = n => /^(19|20)\d{2}$/.test(n);
+            const candidates = [];
+
+            // plain 4–8 digit runs, not glued to date/phone/price punctuation or more digits
+            const re = /\d{4,8}/g;
+            let m;
+            while ((m = re.exec(src)) !== null) {
+                const start = m.index, end = start + m[0].length;
+                const prev = src[start - 1] || "", prev2 = src[start - 2] || "";
+                const next = src[end] || "",      next2 = src[end + 1] || "";
+                // part of a longer number / date / time / phone / decimal → skip.
+                // punctuation only counts when it CONNECTS to another digit,
+                // so a sentence-ending period ("code is 482913.") stays valid
+                const joinedBefore = /\d/.test(prev) || (/[./:,-]/.test(prev) && /\d/.test(prev2)) || /[+#]/.test(prev);
+                const joinedAfter  = /\d/.test(next) || (/[./:,-]/.test(next) && /\d/.test(next2)) || next === "%";
+                if (joinedBefore || joinedAfter) continue;
+                candidates.push({ code: m[0], index: start });
+            }
+            // split codes like "123 456" or "123-456"
+            const reSplit = /(?:^|[^\d-])(\d{3})[ -](\d{3})(?!\d)/g;
+            while ((m = reSplit.exec(src)) !== null) {
+                candidates.push({ code: m[1] + m[2], index: m.index, split: true });
+            }
+            if (!candidates.length) return null;
+
+            const FOOTER = /(©|copyright|all rights|جميع الحقوق|unsubscribe|إلغاء الاشتراك)/i;
+            const MONTHS = /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|january|february|march|april|june|july|august|september|october|november|december|يناير|فبراير|مارس|أبريل|إبريل|مايو|يونيو|يوليو|أغسطس|سبتمبر|أكتوبر|نوفمبر|ديسمبر)\b/i;
+
+            function score(c) {
+                let s = 0;
+                const ctx = src.slice(Math.max(0, c.index - 70), Math.min(src.length, c.index + c.code.length + 70));
+                if (KEYWORDS.test(ctx)) s += 10;            // near "code/verification/رمز..."
+                if (c.code.length === 6) s += 3;            // most common OTP length
+                else if (c.code.length === 4 || c.code.length === 5) s += 2;
+                else if (c.code.length === 7 || c.code.length === 8) s += 1;
+                if (c.split) s += 1;                        // "123 456" formatting is OTP-style
+                if (isYear(c.code)) s -= 9;                 // 2026 etc. is almost never a code
+                if (MONTHS.test(ctx)) s -= 4;               // inside a date like "June 2026"
+                if (FOOTER.test(ctx)) s -= 6;               // footer / copyright junk
+                // appears early in the message → slightly more likely to be the code
+                if (c.index < src.length * 0.5) s += 1;
+                return s;
+            }
+
+            candidates.forEach(c => c.score = score(c));
+            candidates.sort((a, b) => b.score - a.score);
+            const best = candidates[0];
+            // require positive confidence; a bare year never passes without a keyword next to it
+            if (best.score < 2) return null;
+            if (isYear(best.code) && best.score < 10) return null;
+            return best.code;
+        }
+
+        // ── open email (FIXED: supports both providers) ────────────
+        async function openEmail(id) {
+            haptic();
+            try {
+                let subject = "", fromAddr = "", htmlBody = null, textBody = "";
+                const bodyCacheKey = "mailbody_" + activeEmail + "_" + id;
+                const isLocal = String(id).startsWith("local-");
+
+                try {
+                    if (isLocal) {
+                        // local email, never fetch from server
+                    } else if (activeProvider === "guerrilla") {
+                        const r = await fetch(GUERRILLA_API + "?f=fetch_email&email_id=" + encodeURIComponent(id) + "&sid_token=" + activeToken);
+                        const d = await r.json();
+                        subject  = d.mail_subject || "";
+                        fromAddr = d.mail_from || "";
+                        htmlBody = d.mail_body || null;
+                    } else {
+                        const r = await fetch(API_URL + "/messages/" + id, { headers:{"Authorization":"Bearer " + activeToken} });
+                        const d = await r.json();
+                        subject  = d.subject || "";
+                        fromAddr = d.from?.address || "";
+                        htmlBody = (d.html && d.html.length > 0) ? d.html[0] : null;
+                        textBody = d.text || "";
+                    }
+                    if (htmlBody || textBody) {
+                        try { localStorage.setItem(bodyCacheKey, JSON.stringify({ subject, fromAddr, htmlBody, textBody })); } catch(e) {}
+                    }
+                } catch(fetchErr) { console.error(fetchErr); }
+
+                // fallback: server may have already expired the email, use the cached copy
+                if (!htmlBody && !textBody) {
+                    const cachedBody = JSON.parse(localStorage.getItem(bodyCacheKey) || "null");
+                    if (cachedBody) {
+                        subject  = cachedBody.subject;
+                        fromAddr = cachedBody.fromAddr;
+                        htmlBody = cachedBody.htmlBody;
+                        textBody = cachedBody.textBody;
+                    } else {
+                        const meta = JSON.parse(localStorage.getItem("inbox_" + activeEmail) || "[]").find(m => m.id === id);
+                        if (meta) {
+                            subject  = meta.subject || "";
+                            fromAddr = meta.from?.address || "";
+                            textBody = meta.intro || t("expired");
+                        }
+                    }
+                }
+
+                document.getElementById("modalSubject").textContent = subject || t("no_subject");
+                document.getElementById("modalFrom").textContent = t("from") + fromAddr;
+                const body = document.getElementById("modalBody");
+                document.getElementById("codeBar").classList.add("hidden");
+
+                // reset translation state for the new message
+                resetTranslateState();
+
+                let plainText = "";
+                if (htmlBody) {
+                    const html = htmlBody
+                        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+                        .replace(/<link[^>]*rel=["']stylesheet["'][^>]*>/gi, "");
+                    // extract plain text for OTP detection + translation
+                    const tmp = document.createElement("div");
+                    tmp.innerHTML = html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "");
+                    plainText = (tmp.innerText || tmp.textContent || "").trim();
+
+                    // render in a sandboxed iframe, emails display exactly as designed
+                    body.innerHTML = `<iframe id="mailFrame" sandbox="allow-same-origin allow-popups" title="Email content"></iframe>`;
+                    const frame = body.querySelector("#mailFrame");
+                    frame.srcdoc = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base target="_blank"><style>
+                        body{font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;margin:14px;color:#1a1a1a;background:#fff;word-break:break-word;font-size:14px;line-height:1.6}
+                        img{max-width:100%!important;height:auto!important}
+                        a{color:#0a84ff}
+                        table{max-width:100%!important}
+                    </style></head><body>${html}</body></html>`;
+                    frame.onload = () => {
+                        try {
+                            const h = frame.contentDocument.body.scrollHeight;
+                            frame.style.height = Math.min(Math.max(h + 32, 160), 4000) + "px";
+                        } catch(e) { frame.style.height = "420px"; }
+                    };
+                } else {
+                    plainText = (textBody || "").trim();
+                    body.innerHTML = `<div class="mail-plain">${esc(plainText)}</div>`;
+                }
+                currentMailText = plainText;
+                currentMailOriginalHTML = body.innerHTML;
+
+                // Auto-detect OTP codes (smart: ignores years, dates, phones, prices).
+                // local welcome emails never contain codes
+                const otpCode = isLocal ? null : detectOTP(plainText);
+                if (otpCode) {
+                    document.getElementById("detectedCode").textContent = otpCode;
+                    document.getElementById("codeBar").classList.remove("hidden");
+                }
+
+                const modal = document.getElementById("emailModal");
+                modal.classList.remove("hidden");
+                setTimeout(() => { modal.classList.remove("opacity-0"); modal.firstElementChild.classList.remove("scale-95"); }, 10);
+
+                // mark as seen, only on mail.tm (guerrilla marks read on fetch).
+                // never send local welcome-email ids to the server
+                if (activeProvider !== "guerrilla" && !isLocal) {
+                    fetch(API_URL + "/messages/" + id, { method:"PATCH", headers:{"Authorization":"Bearer " + activeToken, "Content-Type":"application/merge-patch+json"}, body:JSON.stringify({seen:true}) }).catch(() => {});
+                }
+                const cached = JSON.parse(localStorage.getItem("inbox_" + activeEmail) || "[]");
+                const idx = cached.findIndex(m => m.id === id);
+                if (idx !== -1) {
+                    cached[idx].seen = true;
+                    localStorage.setItem("inbox_" + activeEmail, JSON.stringify(cached));
+                    renderInbox(cached);
+                }
+            } catch(e) {
+                console.error(e);
+                showToast(t("t_open_failed"), "error");
+            }
+        }
+
+        // ── email translation (auto → Arabic) ──────────────────────
+        let currentMailText = "", currentMailOriginalHTML = "", isTranslated = false, isTranslating = false;
+
+        function resetTranslateState() {
+            isTranslated = false; isTranslating = false;
+            const btn = document.getElementById("translateBtn");
+            btn.classList.remove("active", "translating");
+            document.getElementById("translateLabel").textContent = t("translate");
+            btn.querySelector("i").className = "fa-solid fa-language text-xs";
+        }
+
+        async function toggleTranslate() {
+            if (isTranslating) return;
+            const btn   = document.getElementById("translateBtn");
+            const label = document.getElementById("translateLabel");
+            const icon  = btn.querySelector("i");
+            const body  = document.getElementById("modalBody");
+            haptic();
+
+            // toggle back to original
+            if (isTranslated) {
+                body.innerHTML = currentMailOriginalHTML;
+                const frame = body.querySelector("#mailFrame");
+                if (frame) frame.onload = () => {
+                    try { frame.style.height = Math.min(Math.max(frame.contentDocument.body.scrollHeight + 32, 160), 4000) + "px"; } catch(e) { frame.style.height = "420px"; }
+                };
+                resetTranslateState();
+                return;
+            }
+
+            if (!currentMailText) { showToast(t("t_nothing_translate"), "info"); return; }
+            isTranslating = true;
+            btn.classList.add("translating");
+            icon.className = "fa-solid fa-spinner text-xs";
+            label.textContent = t("translating");
+
+            try {
+                const text = currentMailText.slice(0, 4800);
+                const target = LANG === "ar" ? "ar" : "en";
+                const r = await fetch("https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=" + target + "&dt=t&q=" + encodeURIComponent(text));
+                const d = await r.json();
+                const translated = (d[0] || []).map(x => x[0]).join("");
+                if (!translated) throw new Error("empty");
+                body.innerHTML = `<div class="translated-block" dir="${target === "ar" ? "rtl" : "ltr"}">${esc(translated)}</div>`;
+                isTranslated = true;
+                btn.classList.add("active");
+                label.textContent = t("original");
+                icon.className = "fa-solid fa-rotate-left text-xs";
+                showToast(t("t_translated"), "success");
+            } catch(e) {
+                console.error(e);
+                showToast(t("t_translate_failed"), "error");
+                label.textContent = t("translate");
+                icon.className = "fa-solid fa-language text-xs";
+            } finally {
+                isTranslating = false;
+                btn.classList.remove("translating");
+            }
+        }
+
+        function copyDetectedCode() {
+            const code = document.getElementById("detectedCode").textContent;
+            if (!code) return;
+            const icon  = document.getElementById("copyCodeIcon");
+            const label = document.getElementById("copyCodeText");
+            const btn   = icon.closest("button");
+            const doFeedback = () => {
+                haptic();
+                showToast(t("t_code_copied"), "success");
+                icon.className = "fa-solid fa-check text-[11px]";
+                label.textContent = t("copied");
+                if (btn) { btn.style.background = "rgba(48,209,88,0.15)"; btn.style.borderColor = "rgba(48,209,88,0.3)"; btn.style.color = "#4ade80"; }
+                setTimeout(() => {
+                    icon.className = "fa-regular fa-copy text-[11px]";
+                    label.textContent = t("copy");
+                    if (btn) { btn.style.background = "rgba(255,255,255,0.06)"; btn.style.borderColor = "rgba(255,255,255,0.1)"; btn.style.color = "#e5e5e5"; }
+                }, 2000);
+            };
+            copyToClipboard(code, doFeedback);
+        }
+
+        function copyToClipboard(text, onDone) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(onDone).catch(() => { legacyCopy(text); onDone(); });
+            } else {
+                legacyCopy(text); onDone();
+            }
+        }
+        function legacyCopy(text) {
+            const t = document.createElement("input"); t.value = text;
+            document.body.appendChild(t); t.select(); document.execCommand("copy"); document.body.removeChild(t);
+        }
+
+        function closeModal() {
+            const m = document.getElementById("emailModal");
+            m.classList.add("opacity-0"); m.firstElementChild.classList.add("scale-95");
+            setTimeout(() => m.classList.add("hidden"), 300);
+        }
+
+        function copyEmail(iconId) {
+            if (!activeEmail) return;
+            copyToClipboard(activeEmail, () => {
+                haptic();
+                showToast(t("t_copied"), "success");
+                const icon = document.getElementById(iconId), orig = icon.className;
+                icon.className = "fa-solid fa-check text-green-400";
+                setTimeout(() => icon.className = orig, 2000);
+            });
+        }
+
+        // ── Pull-to-refresh (iOS Mail style) ───────────────────────
+        (function setupPullToRefresh() {
+            const MAX_PULL = 110, TRIGGER = 64;
+            let startY = 0, pulling = false, pullDist = 0, refreshing = false;
+            const indicator = document.getElementById("pullIndicator");
+            const spinner = document.getElementById("pullSpinner");
+            const inboxTab = document.getElementById("tabContentInbox");
+
+            function canPull() {
+                return currentTab === "inbox" && !refreshing &&
+                       (window.scrollY || document.documentElement.scrollTop) <= 0 &&
+                       document.getElementById("emailModal").classList.contains("hidden");
+            }
+
+            inboxTab.addEventListener("touchstart", e => {
+                if (!canPull()) return;
+                startY = e.touches[0].clientY;
+                pulling = true;
+                pullDist = 0;
+                indicator.classList.remove("springing");
+            }, { passive:true });
+
+            inboxTab.addEventListener("touchmove", e => {
+                if (!pulling || !canPull()) return;
+                const dy = e.touches[0].clientY - startY;
+                if (dy <= 0) { indicator.style.height = "0px"; pullDist = 0; return; }
+                // rubber-band resistance
+                pullDist = Math.min(MAX_PULL, dy * 0.45);
+                indicator.style.height = pullDist + "px";
+                const rot = Math.min(1, pullDist / TRIGGER) * 270;
+                spinner.querySelector("svg").style.transform = "rotate(" + rot + "deg)";
+                spinner.style.opacity = Math.min(1, pullDist / 36);
+            }, { passive:true });
+
+            async function finishPull() {
+                if (!pulling) return;
+                pulling = false;
+                indicator.classList.add("springing");
+                if (pullDist >= TRIGGER && activeToken) {
+                    refreshing = true;
+                    haptic(15);
+                    indicator.style.height = "52px";
+                    spinner.classList.add("spinning");
+                    await checkInbox(true);
+                    await new Promise(r => setTimeout(r, 400));
+                    spinner.classList.remove("spinning");
+                    refreshing = false;
+                }
+                indicator.style.height = "0px";
+                pullDist = 0;
+            }
+
+            inboxTab.addEventListener("touchend", finishPull, { passive:true });
+            inboxTab.addEventListener("touchcancel", finishPull, { passive:true });
+        })();
+    </script>
+</body>
+</html>
